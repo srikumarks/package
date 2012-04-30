@@ -52,7 +52,7 @@ prefix can be omitted. For example, the following two are equivalent -
 
     _package('com.anthill.fighter', ['.worker'], function (Worker) {
         // .. do something ..
-        return fighter;
+        return worker;
     });
 
 ### Configuring load locations ###
