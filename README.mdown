@@ -1,0 +1,95 @@
+
+`_package.js` is a package manager very very similar to [require.js].
+I quite like *most* of the design decisions in it, but the only thing
+I don't agree is that modules are referred to using paths, which makes
+module use dependent on file system location.
+
+`_package.js` on the other hand requires you to provide a package
+name that is likely globally unique .. and is closer to the "goog.provide"
+approach. Package names are therefore of the form `"from.top.to.bottom"`.
+This is also compatible with the Java-like reverse-DNS package naming 
+conventions.
+
+Just like [require.js], `_package` also lends itself to easy minification
+using, say, the closure compiler.
+
+## Usage ##
+
+### _package(name) ###
+
+Returns the currently loaded package of the given name. If `"com.anthill.worker"`
+is a valid package name, then there are related package names that you can
+access as well, such as `"com.anthill.*"` and `"com.*"`. Therefore all of
+the following are equivalent -
+
+    _package("com.*").anthill.worker
+    _package("com.anthill.*").worker
+    _package("com.anthill.worker")
+
+### _package(name, definition) ###
+
+`definition` is either a normal value or a function. If the latter, it
+is called and the return value of the function is used as the package value.
+
+    _package('com.anthill.worker', function () {
+        // prepare worker resources.
+        return worker;
+    });
+
+### _package(name, dependencies, definition) ###
+
+`dependencies` is an array of package names that must be loaded
+before this package's definition function can be called. Generally
+speaking, you need to specify full package names for the dependencies,
+but if the dependency is to be loaded from the same location as the
+package itself and they both share a common package prefix, the common
+prefix can be omitted. For example, the following two are equivalent -
+
+    _package('com.anthill.fighter', ['com.anthill.worker'], function (Worker) {
+        // .. do something ..
+        return worker;
+    });
+
+    _package('com.anthill.fighter', ['.worker'], function (Worker) {
+        // .. do something ..
+        return fighter;
+    });
+
+### Configuring load locations ###
+
+A package's path is normally derived from its name if left unspecified
+by substituting '/' for '.' just like the Java packaging scheme. So 
+`"com.anthill.worker"` will be fetched from `"com/anthill/worker.js"`.
+You can override this using `_package.config` as follows -
+
+    _package.config({
+        'com.anthill.worker': {path: 'worker2.js', alias: 'w2'},
+        //...
+    });
+
+Notice that above we've also given an (optional) alias to that package
+and we can from this point on refer to the package just using `'w2'`.
+
+### Forward delarations ###
+
+When concatenating files for minification, you do not want the package
+manager to automatically try to load dependencies. For such cases, you
+can use `_package.declare` to indicate that these packages will be
+loaded without the help of the package manager.
+
+    _package.declare([
+        'com.anthill.worker',
+        'com.anthill.fighter',
+        //...
+    ]);
+
+
+
+
+
+
+
+
+
+
+[require.js]: http://requirejs.org/
