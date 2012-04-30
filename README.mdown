@@ -90,6 +90,9 @@ You can override this using `_package.config` as follows -
 Notice that above we've also given an (optional) alias to that package
 and we can from this point on refer to the package just using `'w2'`.
 
+You can also directly fetch a package from a URL by specifying `url:` 
+instead of `path:`. This works in node.js as well as in the browser.
+
 ### Forward delarations ###
 
 When concatenating files for minification, you do not want the package
