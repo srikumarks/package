@@ -1,4 +1,7 @@
-
+// Copyright (c) 2012, Srikumar K. S.
+// Licensed for use and redistribution under the MIT license.
+// See http://www.opensource.org/licenses/mit-license.php
+//
 // Simple global namespace package manager.
 // Java style packages.
 // Usage: 
