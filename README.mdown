@@ -37,6 +37,22 @@ is called and the return value of the function is used as the package value.
         return worker;
     });
 
+Within the package definition function, `this` refers to the current package
+object being defined, so you can also add exports by assigning properties
+to `this`. If you don't have a `return` statement within the definition
+function, or do a `return;` or a `return undefined;` then the value that
+`this` held is kept as the package value. Otherwise the package object is
+defined by the return value of the definition function. Doing it this way
+lets you augment an already defined package by writing a definition function
+that modifies `this`.
+
+> In contrast to [require.js], `_package.js` doesn't mind you organizing your
+> packages in whatever way you want. The mapping between the package names and
+> file names is only provided as a convenience and the recommended way to use
+> `_package` is to setup any file related mappings externally.  Stuff needed to
+> *build* a system shouldn't be mixed up with definitions of the system's
+> components.
+
 ### _package(name, dependencies, definition) ###
 
 `dependencies` is an array of package names that must be loaded
@@ -55,6 +71,9 @@ prefix can be omitted. For example, the following two are equivalent -
         // .. do something ..
         return worker;
     });
+
+The `this` support described in the previous section also applies to
+this form of package definition.
 
 ### Configuring load locations ###
 
