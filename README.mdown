@@ -22,6 +22,7 @@ is a valid package name, then there are related package names that you can
 access as well, such as `"com.anthill.*"` and `"com.*"`. Therefore all of
 the following are equivalent -
 
+    _package("*").com.anthill.worker
     _package("com.*").anthill.worker
     _package("com.anthill.*").worker
     _package("com.anthill.worker")
