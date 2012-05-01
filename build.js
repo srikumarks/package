@@ -72,7 +72,7 @@ var _packagefn = (function (out) {
     // Returns url if absolute one is specified.
     function packageURL(name) {
         var cfg = config[name];
-        if (cfg && /^https?:\/\//.test(cfg.url)) {
+        if (cfg && cfg.url && /^https?:\/\//.test(cfg.url)) {
             return cfg.url;
         } else {
             return null;
@@ -301,7 +301,11 @@ var _packagefn = (function (out) {
                         });
                     });
                 }
-            }                        
+            } else {
+                console.error("Failed to load package [" + name + "] from [" + where + "]");
+                console.error("Current configuration = ");
+                console.error(config);
+            }
         }
     }
 
@@ -519,7 +523,7 @@ if (process.argv.length <= 2) {
     process.argv.forEach(function (arg, i) {
         if (i >= 2) {
             var source = fs.readFileSync(process.argv[i], 'utf8');
-            _packagefn.__CONFIG__ = {path: process.argv[1]};
+            _packagefn.__CONFIG__ = {path: process.argv[i]};
             eval('(function (_package) {\n' + source + '\n})')(_packagefn);
         }
     });
