@@ -521,4 +521,6 @@ if (process.argv.length <= 2) {
             eval('(function (_package) {\n' + source + '\n})')(_packagefn);
         }
     });
+    process.stdout.write('\ntry { window["_package"] = _package; } catch (e) {}');
+    process.stdout.write('\ntry { module.exports = _package; } catch (e) {}');
 }
