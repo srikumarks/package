@@ -514,6 +514,8 @@ if (process.argv.length <= 2) {
     console.error('Usage: node build.js file1.js file2.js ... > concat.js');
 } else {
     process.stdout.write(_package.toString() + '\n');
+    process.stdout.write('try { window["_package"] = _package; } catch (e) {}\n');
+    process.stdout.write('try { module.exports = _package; } catch (e) {}\n');
     process.argv.forEach(function (arg, i) {
         if (i >= 2) {
             var source = fs.readFileSync(process.argv[i], 'utf8');
@@ -521,6 +523,4 @@ if (process.argv.length <= 2) {
             eval('(function (_package) {\n' + source + '\n})')(_packagefn);
         }
     });
-    process.stdout.write('\ntry { window["_package"] = _package; } catch (e) {}');
-    process.stdout.write('\ntry { module.exports = _package; } catch (e) {}');
 }
