@@ -511,11 +511,15 @@ function _package(name) {
     return root;
 }
 
-process.stdout.write(_package.toString() + '\n');
-process.argv.forEach(function (arg, i) {
-    if (i >= 2) {
-        var source = fs.readFileSync(process.argv[i], 'utf8');
-        _packagefn.__CONFIG__ = {path: process.argv[1]};
-        eval('(function (_package) {\n' + source + '\n})')(_packagefn);
-    }
-});
+if (process.argv.length <= 2) {
+    console.error('Usage: node build.js file1.js file2.js ... > concat.js');
+} else {
+    process.stdout.write(_package.toString() + '\n');
+    process.argv.forEach(function (arg, i) {
+        if (i >= 2) {
+            var source = fs.readFileSync(process.argv[i], 'utf8');
+            _packagefn.__CONFIG__ = {path: process.argv[1]};
+            eval('(function (_package) {\n' + source + '\n})')(_packagefn);
+        }
+    });
+}
