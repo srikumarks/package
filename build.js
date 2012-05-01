@@ -1,5 +1,3 @@
-#!/usr/local/bin/node
-
 // Copyright (c) 2012, Srikumar K. S.
 // Licensed for use and redistribution under the MIT license.
 // See http://www.opensource.org/licenses/mit-license.php
