@@ -361,7 +361,6 @@ var _packagefn = (function (out) {
             cfg[pname] = {url: _packagefn.__CONFIG__.url, path: _packagefn.__CONFIG__.path};
             _packagefn.config(cfg);
         }
-        delete _packagefn.__CONFIG__;
     }
 
     function package3(name, dependencies, definition) {
