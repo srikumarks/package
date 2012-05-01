@@ -97,16 +97,17 @@ var _package = (function (out) {
     }
 
     function definePackageFromSource(name, source) {
-        var cfg = config[name];
-        if (!cfg) {
-            cfg = {};
-            cfg[name] = {url: _package.__CONFIG__.url, path: _package.__CONFIG__.path};
-            _package.config(cfg);
-        }
-
+        loadConfig(name);
         var closure = eval('(function (_package, __pkgname__) {\n' + source + ';\n})');
         closure(_package, name);
         return packages[name];
+    }
+
+    function replaceAll(str, pat, subst) {
+        while (pat.test(str)) {
+            str = str.replace(pat, subst);
+        }
+        return str;
     }
 
     // Inside a package definition function, "this"
@@ -118,6 +119,7 @@ var _package = (function (out) {
     // package definition. Otherwise the return value will
     // be used.
     function defWithFallback(pname, pkg, definition, dependencies) {
+        pname = replaceAll(pname, /\-/, '_');
         pname.split('.').forEach(function (part, i, parts) {
             if (!packages[parts.slice(0, i+1).join('.')]) {
                 var left = '_package.' + parts.slice(0, i+1).join('.');
@@ -360,8 +362,8 @@ var _package = (function (out) {
             var cfg = {};
             cfg[pname] = {url: _package.__CONFIG__.url, path: _package.__CONFIG__.path};
             _package.config(cfg);
-            delete _package.__CONFIG__;
         }
+        delete _package.__CONFIG__;
     }
 
     function package3(name, dependencies, definition) {
