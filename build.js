@@ -33,7 +33,7 @@
 //      If the 'url' key is specified instead of 'path', then the package
 //      is fetched using http, even in Node.js environment.
 
-var _package = (function (out) {
+var _packagefn = (function (out) {
 
     var packages = {};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
@@ -85,7 +85,7 @@ var _package = (function (out) {
 
     function trueName(name) {
         if (/^\./.test(name)) {
-            name = _package.__parent + name;
+            name = _packagefn.__parent + name;
         }
         return name in aliases ? aliases[name] : name;
     }
@@ -97,7 +97,7 @@ var _package = (function (out) {
     function definePackageFromSource(name, source) {
         loadConfig(name);
         var closure = eval('(function (_package, __pkgname__) {\n' + source + ';\n})');
-        closure(_package, name);
+        closure(_packagefn, name);
         return packages[name];
     }
 
@@ -137,7 +137,7 @@ var _package = (function (out) {
     }
 
     function definePackage(name, definition, dependencies) {
-        _package.__parent = name.replace(/\.[^\.]+$/, '');
+        _packagefn.__parent = name.replace(/\.[^\.]+$/, '');
         var p = packages[name] || {};
         packages[name] = p;
         packages[name] = defWithFallback(name, p, definition, dependencies);
@@ -242,7 +242,7 @@ var _package = (function (out) {
                 source += chunk;
             });
             res.on('end', function () {
-                _package.__CONFIG__ = {url: url};
+                _packagefn.__CONFIG__ = {url: url};
                 definePackageFromSource(name, source);
             });
             res.on('error', function (err) {
@@ -262,7 +262,7 @@ var _package = (function (out) {
 
         try {
             source = fs.readFileSync(where, 'utf8');
-            _package.__CONFIG__ = {path: where};
+            _packagefn.__CONFIG__ = {path: where};
             definePackageFromSource(name, source);
         } catch (e) {
             if (listingPkgSuffix.test(name)) {
@@ -277,7 +277,7 @@ var _package = (function (out) {
                         var fname = f.replace(/\.js$/, ''); 
                         var cfg = {};
                         cfg[parentPkg + '.' + fname] = {path: dirLoc + f};
-                        _package.config(cfg);
+                        _packagefn.config(cfg);
                         return fname;
                     });
 
@@ -331,7 +331,7 @@ var _package = (function (out) {
 
         // Store the load order so that we can optimize package load
         // sequence.
-        loadOrder[name] = _package.loadOrder++;
+        loadOrder[name] = _packagefn.loadOrder++;
 
 //        console.log("package " + name + " loaded");
         if (callbacks && callbacks.length > 0) {
@@ -356,12 +356,12 @@ var _package = (function (out) {
     }
 
     function loadConfig(pname) {
-        if (!config[pname] && _package.__CONFIG__) {
+        if (!config[pname] && _packagefn.__CONFIG__) {
             var cfg = {};
-            cfg[pname] = {url: _package.__CONFIG__.url, path: _package.__CONFIG__.path};
-            _package.config(cfg);
+            cfg[pname] = {url: _packagefn.__CONFIG__.url, path: _packagefn.__CONFIG__.path};
+            _packagefn.config(cfg);
         }
-        delete _package.__CONFIG__;
+        delete _packagefn.__CONFIG__;
     }
 
     function package3(name, dependencies, definition) {
@@ -442,7 +442,7 @@ var _package = (function (out) {
                                     fetch(packageURL(name) || packagePath(name)));
     }
 
-    function _package() {
+    function _packagefn() {
         switch (arguments.length) {
             case 1: return package1(arguments[0]);
             case 2: return package2(arguments[0], arguments[1]);
@@ -465,7 +465,7 @@ var _package = (function (out) {
         }
     }
 
-    _package.config = function (setupInfo) {
+    _packagefn.config = function (setupInfo) {
         var i;
         for (var p in setupInfo) {
             i = config[p] = setupInfo[p];
@@ -473,15 +473,15 @@ var _package = (function (out) {
         }
     };
 
-    _package.aliases = function (name2package) {
+    _packagefn.aliases = function (name2package) {
         for (var a in name2package) {
             defAlias(a, name2package[a]);
         }
     };
 
-    _package.fetch = fetch;
+    _packagefn.fetch = fetch;
 
-    _package.declare = function (packagesThatWillBeDefined) {
+    _packagefn.declare = function (packagesThatWillBeDefined) {
         packagesThatWillBeDefined.forEach(function (pname) {
             var pnameres = trueName(pname);
             if (!knownPackage(pnameres)) {
@@ -491,17 +491,31 @@ var _package = (function (out) {
         });
     };
 
-    _package.loadOrder = 1;
+    _packagefn.loadOrder = 1;
 
-    return _package;
+    return _packagefn;
 }(process.stdout));
 
 var fs = require('fs');
-process.stdout.write('_package = {};\n');
+
+function _package(name) {
+    var hyphen = /\-/g;
+    while (hyphen.test(name)) {
+        name = name.replace(hyphen, '_');
+    }
+    name = name.replace(/\.\*$/, '');
+    var root = arguments.callee;
+    name.split('.').forEach(function (part) {
+        root = root[part];
+    });
+    return root;
+}
+
+process.stdout.write(_package.toString() + '\n');
 process.argv.forEach(function (arg, i) {
     if (i >= 2) {
         var source = fs.readFileSync(process.argv[i], 'utf8');
-        _package.__CONFIG__ = {path: process.argv[1]};
-        eval('(function (_package) {\n' + source + '\n})')(_package);
+        _packagefn.__CONFIG__ = {path: process.argv[1]};
+        eval('(function (_package) {\n' + source + '\n})')(_packagefn);
     }
 });
