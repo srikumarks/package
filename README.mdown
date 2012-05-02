@@ -1,8 +1,9 @@
 
 `_package.js` is a package manager very very similar to [require.js].
-I quite like *most* of the design decisions in it, but the only thing
-I don't agree is that modules are referred to using paths, which makes
-module use dependent on file system location.
+I quite like *most* of the design decisions that went into it, but one
+point I don't agree with is that modules are referred to using paths, 
+which makes module *use* depends on which file contains the module
+*definition*.
 
 `_package.js` on the other hand requires you to provide a package
 name that is likely globally unique .. and is closer to the "goog.provide"
