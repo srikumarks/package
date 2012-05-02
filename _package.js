@@ -46,6 +46,19 @@
     }
 }((function () {
 
+    var the_global_object;
+
+    try {
+        window.document;
+        the_global_object = window;
+    } catch (e) {
+    }
+    try {
+        global.require;
+        the_global_object = global;
+    } catch (e) {
+    }
+
     var packages = {};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
 
@@ -91,7 +104,7 @@
     }
 
     function knownPackage(name) {
-        return packages[name];
+        return packages[name] || (name === '#global' ? the_global_object : undefined);
     }
 
     function trueName(name) {
@@ -101,7 +114,7 @@
         return name in aliases ? aliases[name] : name;
     }
 
-    function dummyPackage(name) {
+    function pseudoPackage(name) {
         return name.charAt(0) === '#';
     }
 
@@ -163,7 +176,7 @@
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 var script = document.createElement('script');
                 script.setAttribute('src', packagePath(name));
                 document.head.insertAdjacentElement('beforeend', script);
@@ -184,7 +197,7 @@
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 where = packageURL(name);
                 if (where) {
                     loadPackageFromURL(name, where);
