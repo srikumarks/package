@@ -80,7 +80,7 @@ var _packagefn = (function (out) {
     }
 
     function knownPackage(name) {
-        return packages[name];
+        return packages[name] || (name === '#global' ? "__global__" : undefined);
     }
 
     function trueName(name) {
@@ -518,6 +518,10 @@ if (process.argv.length <= 2) {
     console.error('Usage: node build.js file1.js file2.js ... > concat.js');
 } else {
     process.stdout.write(_package.toString() + '\n');
+    process.stdout.write('_package.__global__ = (function () {\n'
+        + 'try { window.document; return window; } catch (e) {}\n'
+        + 'try { global.require; return global; } catch (e) {}\n'
+        + '}());\n');
     process.stdout.write('try { window["_package"] = _package; } catch (e) {}\n');
     process.stdout.write('try { module.exports = _package; } catch (e) {}\n');
     process.argv.forEach(function (arg, i) {
