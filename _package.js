@@ -106,7 +106,7 @@
     }
 
     function definePackageFromSource(name, source) {
-        var closure = eval('(function (package, __pkgname__) {\n' + source + ';\n})');
+        var closure = eval('(function (_package, __pkgname__) {\n' + source + ';\n})');
         closure(_package, name);
         return packages[name];
     }
