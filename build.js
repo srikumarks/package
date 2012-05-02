@@ -80,7 +80,7 @@ var _packagefn = (function (out) {
     }
 
     function knownPackage(name) {
-        return packages[name] || (name === '#global' ? "__global__" : undefined);
+        return packages[name] || (name === '#global' ? "_package.__global__" : undefined);
     }
 
     function trueName(name) {
