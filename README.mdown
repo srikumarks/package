@@ -55,12 +55,12 @@ that modifies `this`.
 
 ### _package(name, dependencies, definition) ###
 
-`dependencies` is an array of package names that must be loaded
-before this package's definition function can be called. Generally
-speaking, you need to specify full package names for the dependencies,
-but if the dependency is to be loaded from the same location as the
-package itself and they both share a common package prefix, the common
-prefix can be omitted. For example, the following two are equivalent -
+`dependencies` is an array of package names that must be loaded before this
+package's definition function can be called. Generally speaking, you need to
+specify full package names for the dependencies, but if the dependency shares
+the same parent package as the package being defined, it can be specified as a
+"sibling" by starting its name with a "." and omitting the common prefix.  For
+example, the following two are equivalent -
 
     _package('com.anthill.fighter', ['com.anthill.worker'], function (Worker) {
         // .. do something ..
@@ -72,8 +72,27 @@ prefix can be omitted. For example, the following two are equivalent -
         return worker;
     });
 
-The `this` support described in the previous section also applies to
-this form of package definition.
+One other handy feature when you use such relative package names is
+that if the dependency has no configuration information that tells the system
+where to load the package from, it will inherit this configuration from
+that of the package being defined. This means that if the `fighter`
+package above is being loaded from `theredone/foo-fighter.js`, then
+the `worker` will be loaded from `theredone/worker.js`. This lets you have
+a "main.js" package that lists every other sibling package as a dependency
+and does pretty much nothing else. Listing this main package as a dependency
+for another package will result in the whole package being loaded.
+
+The `this` support for extending packages described in the previous section 
+also applies to this three-argument form.
+
+#### Experimental "__listing__" feature ####
+
+If a dependency name ends with an asterisk, like `"another.package.*"`, then
+the special package named `"another.package.__listing__"` is checked.  That
+"package" is expected to be an array of other sub-package names, all of which
+will be included as dependencies of the package that refers to
+"another.package.*" and the corresponding argument will be an object whose keys
+are the sub-package names and whose values are the sub-packages' contents.
 
 ### Configuring load locations ###
 
@@ -106,13 +125,11 @@ loaded without the help of the package manager.
         //...
     ]);
 
+You place such a declare statement at the start of your collection of packages
+and simply concat all the package definition files.  
 
-
-
-
-
-
-
-
+I want to liberate source code from files and separating the mapping from
+package to source from the definition of a package and its dependencies
+is my little contribution to that.
 
 [require.js]: http://requirejs.org/
