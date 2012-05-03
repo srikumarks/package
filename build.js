@@ -108,6 +108,10 @@ var _packagefn = (function (out) {
         return str;
     }
 
+    function fullname(name) {
+        return '_package.' + name;
+    }
+
     // Inside a package definition function, "this"
     // refers to the current package object so you can
     // setup exports by assigning properties to the
@@ -123,20 +127,20 @@ var _packagefn = (function (out) {
         });
 
         if (definition && definition.constructor === Function) {
-            out.write('_package.' + pname + ' = (');
-            out.write(definition.toString() + ').apply(_package.' + pname + ', [' + dependencies.join(',') + ']) || _package.' + pname + ';\n');
+            out.write(fullname(pname) + ' = (');
+            out.write(definition.toString() + ').apply(' + fullname(pname) + ', [' + dependencies.join(',') + ']) || ' + fullname(pname) + ';\n');
         } else {
-            out.write('_package.' + pname + ' = (' + JSON.stringify(definition) + ');\n');
+            out.write(fullname(pname) + ' = (' + JSON.stringify(definition) + ');\n');
         }
-        return '_package.' + pname;
+        return fullname(pname);
         //        var p = definition.apply(pkg, dependencies);
         //        return p === undefined ? pkg : p;
     }
 
     function declPkg(name) {
         if (!packages[name]) {
-            out.write('_package.' + name + ' = _package.' + name + ' || {};\n');
-            return packages[name] = ('_package.' + name);
+            out.write(fullname(name) + ' = ' + fullname(name) + ' || {};\n');
+            return packages[name] = fullname(name);
         } else {
             return packages[name];
         }
