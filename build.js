@@ -119,10 +119,7 @@ var _packagefn = (function (out) {
     function defWithFallback(pname, pkg, definition, dependencies) {
         pname = replaceAll(pname, /\-/, '_');
         pname.split('.').forEach(function (part, i, parts) {
-            if (!packages[parts.slice(0, i+1).join('.')]) {
-                var left = '_package.' + parts.slice(0, i+1).join('.');
-                out.write(left + ' = ' + left + ' || {};\n');
-            }
+            declPkg(parts.slice(0, i+1).join('.'));
         });
 
         if (definition && definition.constructor === Function) {
@@ -136,10 +133,18 @@ var _packagefn = (function (out) {
         //        return p === undefined ? pkg : p;
     }
 
+    function declPkg(name) {
+        if (!packages[name]) {
+            out.write('_package.' + name + ' = _package.' + name + ' || {};\n');
+            return packages[name] = ('_package.' + name);
+        } else {
+            return packages[name];
+        }
+    }
+
     function definePackage(name, definition, dependencies) {
         _packagefn.__parent = name.replace(/\.[^\.]+$/, '');
-        var p = packages[name] || {};
-        packages[name] = p;
+        var p = declPkg(name);
         packages[name] = defWithFallback(name, p, definition, dependencies);
         return onPackageLoaded(name);
     }
