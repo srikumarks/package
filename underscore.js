@@ -6,10 +6,11 @@
 // WARNING: Not intended for use directly within
 // a browser. More for use when building a minified
 // application.
-_package('Underscore', ['#global'], 
-        eval('(function (__window__) {\n' 
+_package('underscore', 
+        eval('(function () {\n' 
+            + 'var module = {exports: {}}, exports = module.exports;\n'
             + 'return (function () {\n'
             + _package.fetch('underscore-1.3.3.js')
-            + '\nreturn this["_"];\n'
-            + '}).call(Object.create(__window__));\n'
+            + '\nreturn this["_"] || module.exports;\n'
+            + '}).call({});\n'
             + '})\n'));
