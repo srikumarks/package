@@ -10,7 +10,7 @@ _package('backbone',
         eval('(function () {\n' 
             + 'var module = {exports: {}}, exports = module.exports;\n'
             + 'return (function () {\n'
-            + _package.fetch('backbone-0.9.2.js')
+            + _package.fetch('lib/backbone-0.9.2.js')
             + '\nreturn this["Backbone"] || module.exports;\n'
             + '}).call({});\n'
             + '})\n'));

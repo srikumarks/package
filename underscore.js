@@ -10,7 +10,7 @@ _package('underscore',
         eval('(function () {\n' 
             + 'var module = {exports: {}}, exports = module.exports;\n'
             + 'return (function () {\n'
-            + _package.fetch('underscore-1.3.3.js')
+            + _package.fetch('lib/underscore-1.3.3.js')
             + '\nreturn this["_"] || module.exports;\n'
             + '}).call({});\n'
             + '})\n'));
