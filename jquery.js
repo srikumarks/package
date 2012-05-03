@@ -6,7 +6,7 @@
 // WARNING: Not intended for use directly within
 // a browser. More for use when building a minified
 // application.
-_package('jQuery', ['#global'], 
+_package('jquery', ['#global'], 
         eval('(function (__window__) {\n' 
             + 'var window = Object.create(__window__);\n'
             + _package.fetch('lib/jquery-1.7.2.js')
