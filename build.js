@@ -109,7 +109,7 @@ var _packagefn = (function (out) {
     }
 
     function fullname(name) {
-        return '_package.' + name;
+        return '_package.' + replaceAll(name, /\-/, '_');
     }
 
     // Inside a package definition function, "this"
@@ -121,29 +121,31 @@ var _packagefn = (function (out) {
     // package definition. Otherwise the return value will
     // be used.
     function defWithFallback(pname, pkg, definition, dependencies) {
-        pname = replaceAll(pname, /\-/, '_');
-        pname.split('.').forEach(function (part, i, parts) {
-            declPkg(parts.slice(0, i+1).join('.'));
-        });
+        var pname_ = fullname(pname);
+        declPkg(pname);
 
         if (definition && definition.constructor === Function) {
-            out.write(fullname(pname) + ' = (');
-            out.write(definition.toString() + ').apply(' + fullname(pname) + ', [' + dependencies.join(',') + ']) || ' + fullname(pname) + ';\n');
+            out.write(pname_ + ' = (');
+            out.write(definition.toString() + ').apply(' + pname_ + ', [' + dependencies.join(',') + ']) || ' + pname_ + ';\n');
         } else {
-            out.write(fullname(pname) + ' = (' + JSON.stringify(definition) + ');\n');
+            out.write(pname_ + ' = (' + JSON.stringify(definition) + ');\n');
         }
-        return fullname(pname);
+        return pname_;
         //        var p = definition.apply(pkg, dependencies);
         //        return p === undefined ? pkg : p;
     }
 
     function declPkg(name) {
-        if (!packages[name]) {
-            out.write(fullname(name) + ' = ' + fullname(name) + ' || {};\n');
-            return packages[name] = fullname(name);
-        } else {
-            return packages[name];
-        }
+        var name_ = fullname(name);
+        name.split('.').forEach(function (part, i, parts) {
+            var n = parts.slice(0, i+1).join('.');
+            if (!packages[n]) {
+                var n_ = fullname(n);
+                out.write(n_ + ' = ' + n_ + ' || {};\n');
+                packages[n] = n_;
+            }
+        });
+        return packages[name] = name_;
     }
 
     function definePackage(name, definition, dependencies) {
