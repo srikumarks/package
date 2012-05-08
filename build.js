@@ -33,7 +33,7 @@
 //      If the 'url' key is specified instead of 'path', then the package
 //      is fetched using http, even in Node.js environment.
 
-var _packagefn = (function (out) {
+var packagefn = (function (out) {
 
     var packages = {};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
@@ -80,12 +80,12 @@ var _packagefn = (function (out) {
     }
 
     function knownPackage(name) {
-        return packages[name] || (name === '#global' ? "_package.__global__" : undefined);
+        return packages[name] || (name === '#global' ? "package.__global__" : undefined);
     }
 
     function trueName(name) {
         if (/^\./.test(name)) {
-            name = _packagefn.__parent + name;
+            name = packagefn.__parent + name;
         }
         return name in aliases ? aliases[name] : name;
     }
@@ -96,8 +96,8 @@ var _packagefn = (function (out) {
 
     function definePackageFromSource(name, source) {
         loadConfig(name);
-        var closure = eval('(function (_package, __pkgname__) {\n' + source + ';\n})');
-        closure(_packagefn, name);
+        var closure = eval('(function (package, __pkgname__) {\n' + source + ';\n})');
+        closure(packagefn, name);
         return packages[name];
     }
 
@@ -109,7 +109,7 @@ var _packagefn = (function (out) {
     }
 
     function fullname(name) {
-        return '_package.' + replaceAll(name, /\-/, '_');
+        return 'package.' + replaceAll(name, /\-/, '_');
     }
 
     // Inside a package definition function, "this"
@@ -149,7 +149,7 @@ var _packagefn = (function (out) {
     }
 
     function definePackage(name, definition, dependencies) {
-        _packagefn.__parent = name.replace(/\.[^\.]+$/, '');
+        packagefn.__parent = name.replace(/\.[^\.]+$/, '');
         var p = declPkg(name);
         packages[name] = defWithFallback(name, p, definition, dependencies);
         return onPackageLoaded(name);
@@ -253,7 +253,7 @@ var _packagefn = (function (out) {
                 source += chunk;
             });
             res.on('end', function () {
-                _packagefn.__CONFIG__ = {url: url};
+                packagefn.__CONFIG__ = {url: url};
                 definePackageFromSource(name, source);
             });
             res.on('error', function (err) {
@@ -273,7 +273,7 @@ var _packagefn = (function (out) {
 
         try {
             source = fs.readFileSync(where, 'utf8');
-            _packagefn.__CONFIG__ = {path: where};
+            packagefn.__CONFIG__ = {path: where};
             definePackageFromSource(name, source);
         } catch (e) {
             if (listingPkgSuffix.test(name)) {
@@ -288,7 +288,7 @@ var _packagefn = (function (out) {
                         var fname = f.replace(/\.js$/, ''); 
                         var cfg = {};
                         cfg[parentPkg + '.' + fname] = {path: dirLoc + f};
-                        _packagefn.config(cfg);
+                        packagefn.config(cfg);
                         return fname;
                     });
 
@@ -322,10 +322,10 @@ var _packagefn = (function (out) {
 
     // If you load a package named 'blah.bling.meow',
     // then you can get the package in a number of ways -
-    //      _package('blah.bling.meow')
-    //      _package('blah.bling.*').meow
-    //      _package('blah.*').bling.meow
-    //      _package('*').blah.bling.meow
+    //      package('blah.bling.meow')
+    //      package('blah.bling.*').meow
+    //      package('blah.*').bling.meow
+    //      package('*').blah.bling.meow
     //  This function sets up all those alternative paths.
     function setPackagePatterns(components, p) {
         components.forEach(function (comp, i) {
@@ -346,7 +346,7 @@ var _packagefn = (function (out) {
 
         // Store the load order so that we can optimize package load
         // sequence.
-        loadOrder[name] = _packagefn.loadOrder++;
+        loadOrder[name] = packagefn.loadOrder++;
 
 //        console.log("package " + name + " loaded");
         if (callbacks && callbacks.length > 0) {
@@ -371,10 +371,10 @@ var _packagefn = (function (out) {
     }
 
     function loadConfig(pname) {
-        if (!config[pname] && _packagefn.__CONFIG__) {
+        if (!config[pname] && packagefn.__CONFIG__) {
             var cfg = {};
-            cfg[pname] = {url: _packagefn.__CONFIG__.url, path: _packagefn.__CONFIG__.path};
-            _packagefn.config(cfg);
+            cfg[pname] = {url: packagefn.__CONFIG__.url, path: packagefn.__CONFIG__.path};
+            packagefn.config(cfg);
         }
     }
 
@@ -456,7 +456,7 @@ var _packagefn = (function (out) {
                                     fetch(packageURL(name) || packagePath(name)));
     }
 
-    function _packagefn() {
+    function packagefn() {
         switch (arguments.length) {
             case 1: return package1(arguments[0]);
             case 2: return package2(arguments[0], arguments[1]);
@@ -479,7 +479,7 @@ var _packagefn = (function (out) {
         }
     }
 
-    _packagefn.config = function (setupInfo) {
+    packagefn.config = function (setupInfo) {
         var i;
         for (var p in setupInfo) {
             i = config[p] = setupInfo[p];
@@ -487,15 +487,15 @@ var _packagefn = (function (out) {
         }
     };
 
-    _packagefn.aliases = function (name2package) {
+    packagefn.aliases = function (name2package) {
         for (var a in name2package) {
             defAlias(a, name2package[a]);
         }
     };
 
-    _packagefn.fetch = fetch;
+    packagefn.fetch = fetch;
 
-    _packagefn.declare = function (packagesThatWillBeDefined) {
+    packagefn.declare = function (packagesThatWillBeDefined) {
         packagesThatWillBeDefined.forEach(function (pname) {
             var pnameres = trueName(pname);
             if (!knownPackage(pnameres)) {
@@ -505,14 +505,14 @@ var _packagefn = (function (out) {
         });
     };
 
-    _packagefn.loadOrder = 1;
+    packagefn.loadOrder = 1;
 
-    return _packagefn;
+    return packagefn;
 }(process.stdout));
 
 var fs = require('fs');
 
-function _package(name) {
+function package(name) {
     var hyphen = /\-/g;
     while (hyphen.test(name)) {
         name = name.replace(hyphen, '_');
@@ -528,18 +528,18 @@ function _package(name) {
 if (process.argv.length <= 2) {
     console.error('Usage: node build.js file1.js file2.js ... > concat.js');
 } else {
-    process.stdout.write(_package.toString() + '\n');
-    process.stdout.write('_package.__global__ = (function () {\n'
+    process.stdout.write(package.toString() + '\n');
+    process.stdout.write('package.__global__ = (function () {\n'
         + 'try { window.document; return window; } catch (e) {}\n'
         + 'try { global.require; return global; } catch (e) {}\n'
         + '}());\n');
-    process.stdout.write('try { window["_package"] = _package; } catch (e) {}\n');
-    process.stdout.write('try { module.exports = _package; } catch (e) {}\n');
+    process.stdout.write('try { window["package"] = package; } catch (e) {}\n');
+    process.stdout.write('try { module.exports = package; } catch (e) {}\n');
     process.argv.forEach(function (arg, i) {
         if (i >= 2) {
             var source = fs.readFileSync(process.argv[i], 'utf8');
-            _packagefn.__CONFIG__ = {path: process.argv[i]};
-            eval('(function (_package) {\n' + source + '\n})')(_packagefn);
+            packagefn.__CONFIG__ = {path: process.argv[i]};
+            eval('(function (package) {\n' + source + '\n})')(packagefn);
         }
     });
 }

@@ -6,11 +6,11 @@
 // WARNING: Not intended for use directly within
 // a browser. More for use when building a minified
 // application.
-_package('underscore', 
+package('underscore', 
         eval('(function () {\n' 
             + 'var module = {exports: {}}, exports = module.exports;\n'
             + 'return (function () {\n'
-            + _package.fetch('lib/underscore-1.3.3.js')
+            + package.fetch('lib/underscore-1.3.3.js')
             + '\nreturn this["_"] || module.exports;\n'
             + '}).call({});\n'
             + '})\n'));

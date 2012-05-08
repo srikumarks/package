@@ -1,3 +1,3 @@
-_package('com.stupid.dep', [], function () {
+package('com.stupid.dep', [], function () {
     return {dog_says: "bowow"};
 });

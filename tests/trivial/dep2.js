@@ -1,1 +1,1 @@
-_package('com.stupid.dep2', "Hello world");
+package('com.stupid.dep2', "Hello world");
