@@ -107,7 +107,7 @@ var packagefn = (function (out) {
         return name in aliases ? aliases[name] : name;
     }
 
-    function dummyPackage(name) {
+    function pseudoPackage(name) {
         return name.charAt(0) === '#';
     }
 
@@ -126,7 +126,7 @@ var packagefn = (function (out) {
     }
 
     function fullname(name) {
-        return 'package._.' + replaceAll(name, /\-/, '_');
+        return ['package._', replaceAll(name, /\-/, '_')].join('.');
     }
 
     // Inside a package definition function, "this"
@@ -202,7 +202,7 @@ var packagefn = (function (out) {
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 var script = document.createElement('script');
                 script.setAttribute('src', packagePath(name));
                 document.head.insertAdjacentElement('beforeend', script);
@@ -223,7 +223,7 @@ var packagefn = (function (out) {
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 where = packageURL(name);
                 if (where) {
                     loadPackageFromURL(name, where);
@@ -349,8 +349,7 @@ var packagefn = (function (out) {
         components.forEach(function (comp, i) {
             validPkgName(comp);
             var n = components.slice(0, i).join('.');
-            packages[n + '.*'] = n;
-            packages[n] = n;
+            packages[n + (i > 0 ? '.*' : '*')] = n;
         });
     }
 

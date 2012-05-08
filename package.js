@@ -83,6 +83,25 @@
 
     var aliases = {}; // Maps short names to full package names.
 
+    // Valid package names are those that are not any of
+    // the builtin members of Function objects in JS,
+    // which includes raw objects as well. This excludes
+    // stuff like 'constructor', 'toString', etc. as package
+    // names. It returns the name if valid, throws an exception
+    // if not valid.
+    var validPkgName = (function () {
+        function checkComponent(n) {
+            if (checkComponent[n]) {
+                throw new Error('Invalid package component name [' + n + ']');
+            } else {
+                return n;
+            }
+        }
+        return function (n) {
+            return n.split('.').map(checkComponent).join('.');
+        };
+    }());
+
     // Gets path specified in config, or derives a path
     // from the package name by replacing '.' with '/'.
     function packagePath(name) {
@@ -96,7 +115,7 @@
     // Returns url if absolute one is specified.
     function packageURL(name) {
         var cfg = config[name];
-        if (cfg && /^https?:\/\//.test(cfg.url)) {
+        if (cfg && cfg.url && /^https?:\/\//.test(cfg.url)) {
             return cfg.url;
         } else {
             return null;
@@ -119,6 +138,7 @@
     }
 
     function definePackageFromSource(name, source) {
+        loadConfig(name);
         var closure = eval('(function (package, __pkgname__) {\n' + source + ';\n})');
         closure(package, name);
         return packages[name];
@@ -245,6 +265,7 @@
                 source += chunk;
             });
             res.on('end', function () {
+                package.__CONFIG__ = {url: url};
                 definePackageFromSource(name, source);
             });
             res.on('error', function (err) {
@@ -264,6 +285,7 @@
 
         try {
             source = fs.readFileSync(where, 'utf8');
+            package.__CONFIG__ = {path: where};
             definePackageFromSource(name, source);
         } catch (e) {
             if (listingPkgSuffix.test(name)) {
@@ -302,7 +324,11 @@
                         });
                     });
                 }
-            }                        
+            } else {
+                console.error("Failed to load package [" + name + "] from [" + where + "]");
+                console.error("Current configuration = ");
+                console.error(config);
+            }
         }
     }
 
@@ -368,10 +394,20 @@
         return components.join('/');
     }
 
+    function loadConfig(pname) {
+        if (!config[pname] && package.__CONFIG__) {
+            var cfg = {};
+            cfg[pname] = {url: package.__CONFIG__.url, path: package.__CONFIG__.path};
+            package.config(cfg);
+        }
+    }
+
     function package3(name, dependencies, definition) {
         var depPackages = [];
         var count = 0;
-        var pname = trueName(name);
+        var pname = trueName(validPkgName(name));
+
+        loadConfig(pname);
 
         if (dependencies.length > 0) {
             dependencies.forEach(function (dep, i) {
@@ -433,12 +469,13 @@
     }
 
     function package2(name, definition) {
-        var tname = trueName(name);
+        var tname = trueName(validPkgName(name));
+        loadConfig(tname);
         return definePackage(tname, definition, []);
     }
 
     function package1(name) {
-        name = trueName(name);
+        name = trueName(validPkgName(name));
         return packages[name] || definePackageFromSource(name, 
                                     fetch(packageURL(name) || packagePath(name)));
     }
@@ -453,6 +490,8 @@
     }
 
     function defAlias(name, p) {
+        validPkgName(name);
+        validPkgName(p);
         aliases[name] = p;
         var pobj = packages[p];
         if (pobj) {
