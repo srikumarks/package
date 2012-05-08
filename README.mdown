@@ -14,7 +14,17 @@ conventions.
 Just like [require.js], `package` also lends itself to easy minification
 using, say, the closure compiler.
 
-## Usage ##
+[require.js]: http://requirejs.org/
+
+## Using package.js ##
+
+You can directly use the package within a HTML file during development as shown
+below. During deployment, you can use the builder to combine multiple packages
+into a single file which you can then pass on to a minifier like the closure
+compiler.
+
+    <script src="https://raw.github.com/srikumarks/package.js/master/package.js"></script>
+
 
 ### package(name) ###
 
@@ -133,4 +143,39 @@ I want to liberate source code from files and separating the mapping from
 package to source from the definition of a package and its dependencies
 is my little contribution to that.
 
-[require.js]: http://requirejs.org/
+## Using builder.js and configure.js ##
+
+The loading facility in `package.js` is alright, but you never want to
+actually deploy an application like that because the load times for
+the various packages just add up. What you need to do is to concatenate
+all the packages you need into a single file and minify it and ship
+that instead. `configure.js` and `builder.js` are Node programs that
+help you do that.
+
+If you run the programs without any arguments, they'll print out a
+small usage hint.
+
+### configure.js ###
+
+    Usage: node configure.js file1.js file2.js ... > build-config.js
+
+Generates (to stdout) `package.config` declarations for all the packages
+found in the given files. The order of the files is irrelevant and there can
+be any number of packages defined in each file.
+
+If you then use the resulting `build-config.js` file as the first file
+you pass to `build.js`, then the builder will know where to find every
+package it needs.
+
+### build.js ###
+
+    Usage: node build.js [build-config.js] main.js > concatenated.js
+
+`build.js` scans all packages in `main.js` and generates a single concatenated
+output containing all the packages necessary to run the code in `main.js`,
+including `main.js` itself. The resulting `concatenated.js` can be passed
+to a minifier such as the closure compiler directly.
+
+The contents of `concatenated.js` are independent of `package.js` and you
+don't need to include `package.js` in your HTML file after you build your
+application like this.
