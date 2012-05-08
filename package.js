@@ -33,18 +33,31 @@
 //      If the 'url' key is specified instead of 'path', then the package
 //      is fetched using http, even in Node.js environment.
 
-(function (_package) {
+(function (package) {
     try {
-        module.exports = _package;
-        global._package = _package;
+        module.exports = package;
+        global.package = package;
     } catch (e) {
     }
 
     try {
-        window["_package"] = _package;
+        window["package"] = package;
     } catch (e) {
     }
 }((function () {
+
+    var the_global_object;
+
+    try {
+        window.document;
+        the_global_object = window;
+    } catch (e) {
+    }
+    try {
+        global.require;
+        the_global_object = global;
+    } catch (e) {
+    }
 
     var packages = {};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
@@ -91,23 +104,23 @@
     }
 
     function knownPackage(name) {
-        return packages[name];
+        return packages[name] || (name === '#global' ? the_global_object : undefined);
     }
 
     function trueName(name) {
         if (/^\./.test(name)) {
-            name = _package.__parent + name;
+            name = package.__parent + name;
         }
         return name in aliases ? aliases[name] : name;
     }
 
-    function dummyPackage(name) {
+    function pseudoPackage(name) {
         return name.charAt(0) === '#';
     }
 
     function definePackageFromSource(name, source) {
-        var closure = eval('(function (_package, __pkgname__) {\n' + source + ';\n})');
-        closure(_package, name);
+        var closure = eval('(function (package, __pkgname__) {\n' + source + ';\n})');
+        closure(package, name);
         return packages[name];
     }
 
@@ -125,7 +138,7 @@
     }
 
     function definePackage(name, definition, dependencies) {
-        _package.__parent = name.replace(/\.[^\.]+$/, '');
+        package.__parent = name.replace(/\.[^\.]+$/, '');
         var p = packages[name] || {};
         packages[name] = p;
         packages[name] = (definition.constructor === Function 
@@ -163,7 +176,7 @@
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 var script = document.createElement('script');
                 script.setAttribute('src', packagePath(name));
                 document.head.insertAdjacentElement('beforeend', script);
@@ -184,7 +197,7 @@
             // Need to load package.
             loading[name] = true;
             addOnLoad(name, callback);
-            if (!dummyPackage(name)) {
+            if (!pseudoPackage(name)) {
                 where = packageURL(name);
                 if (where) {
                     loadPackageFromURL(name, where);
@@ -265,7 +278,7 @@
                         var fname = f.replace(/\.js$/, ''); 
                         var cfg = {};
                         cfg[parentPkg + '.' + fname] = {path: dirLoc + f};
-                        _package.config(cfg);
+                        package.config(cfg);
                         return fname;
                     });
 
@@ -295,10 +308,10 @@
 
     // If you load a package named 'blah.bling.meow',
     // then you can get the package in a number of ways -
-    //      _package('blah.bling.meow')
-    //      _package('blah.bling.*').meow
-    //      _package('blah.*').bling.meow
-    //      _package('*').blah.bling.meow
+    //      package('blah.bling.meow')
+    //      package('blah.bling.*').meow
+    //      package('blah.*').bling.meow
+    //      package('*').blah.bling.meow
     //  This function sets up all those alternative paths.
     function setPackagePatterns(components, p) {
         var pattern, prefix;
@@ -331,7 +344,7 @@
 
         // Store the load order so that we can optimize package load
         // sequence.
-        loadOrder[name] = _package.loadOrder++;
+        loadOrder[name] = package.loadOrder++;
 
         console.log("package " + name + " loaded");
         if (callbacks && callbacks.length > 0) {
@@ -430,7 +443,7 @@
                                     fetch(packageURL(name) || packagePath(name)));
     }
 
-    function _package() {
+    function package() {
         switch (arguments.length) {
             case 1: return package1(arguments[0]);
             case 2: return package2(arguments[0], arguments[1]);
@@ -453,7 +466,7 @@
         }
     }
 
-    _package.config = function (setupInfo) {
+    package.config = function (setupInfo) {
         var i;
         for (var p in setupInfo) {
             i = config[p] = setupInfo[p];
@@ -461,15 +474,15 @@
         }
     };
 
-    _package.aliases = function (name2package) {
+    package.aliases = function (name2package) {
         for (var a in name2package) {
             defAlias(a, name2package[a]);
         }
     };
 
-    _package.fetch = fetch;
+    package.fetch = fetch;
 
-    _package.declare = function (packagesThatWillBeDefined) {
+    package.declare = function (packagesThatWillBeDefined) {
         packagesThatWillBeDefined.forEach(function (pname) {
             var pnameres = trueName(pname);
             if (!knownPackage(pnameres)) {
@@ -479,7 +492,7 @@
         });
     };
 
-    _package.loadOrder = 1;
+    package.loadOrder = 1;
 
-    return _package;
+    return package;
 }())));
