@@ -1,39 +1,39 @@
 
-`_package.js` is a package manager very very similar to [require.js].
+`package.js` is a package manager very very similar to [require.js].
 I quite like *most* of the design decisions that went into it, but one
 point I don't agree with is that modules are referred to using paths, 
 which makes module *use* depends on which file contains the module
 *definition*.
 
-`_package.js` on the other hand requires you to provide a package
+`package.js` on the other hand requires you to provide a package
 name that is likely globally unique .. and is closer to the "goog.provide"
 approach. Package names are therefore of the form `"from.top.to.bottom"`.
 This is also compatible with the Java-like reverse-DNS package naming 
 conventions.
 
-Just like [require.js], `_package` also lends itself to easy minification
+Just like [require.js], `package` also lends itself to easy minification
 using, say, the closure compiler.
 
 ## Usage ##
 
-### _package(name) ###
+### package(name) ###
 
 Returns the currently loaded package of the given name. If `"com.anthill.worker"`
 is a valid package name, then there are related package names that you can
 access as well, such as `"com.anthill.*"` and `"com.*"`. Therefore all of
 the following are equivalent -
 
-    _package("*").com.anthill.worker
-    _package("com.*").anthill.worker
-    _package("com.anthill.*").worker
-    _package("com.anthill.worker")
+    package("*").com.anthill.worker
+    package("com.*").anthill.worker
+    package("com.anthill.*").worker
+    package("com.anthill.worker")
 
-### _package(name, definition) ###
+### package(name, definition) ###
 
 `definition` is either a normal value or a function. If the latter, it
 is called and the return value of the function is used as the package value.
 
-    _package('com.anthill.worker', function () {
+    package('com.anthill.worker', function () {
         // prepare worker resources.
         return worker;
     });
@@ -47,14 +47,14 @@ defined by the return value of the definition function. Doing it this way
 lets you augment an already defined package by writing a definition function
 that modifies `this`.
 
-> In contrast to [require.js], `_package.js` doesn't mind you organizing your
+> In contrast to [require.js], `package.js` doesn't mind you organizing your
 > packages in whatever way you want. The mapping between the package names and
 > file names is only provided as a convenience and the recommended way to use
-> `_package` is to setup any file related mappings externally.  Stuff needed to
+> `package` is to setup any file related mappings externally.  Stuff needed to
 > *build* a system shouldn't be mixed up with definitions of the system's
 > components.
 
-### _package(name, dependencies, definition) ###
+### package(name, dependencies, definition) ###
 
 `dependencies` is an array of package names that must be loaded before this
 package's definition function can be called. Generally speaking, you need to
@@ -63,12 +63,12 @@ the same parent package as the package being defined, it can be specified as a
 "sibling" by starting its name with a "." and omitting the common prefix.  For
 example, the following two are equivalent -
 
-    _package('com.anthill.fighter', ['com.anthill.worker'], function (Worker) {
+    package('com.anthill.fighter', ['com.anthill.worker'], function (Worker) {
         // .. do something ..
         return worker;
     });
 
-    _package('com.anthill.fighter', ['.worker'], function (Worker) {
+    package('com.anthill.fighter', ['.worker'], function (Worker) {
         // .. do something ..
         return worker;
     });
@@ -100,9 +100,9 @@ are the sub-package names and whose values are the sub-packages' contents.
 A package's path is normally derived from its name if left unspecified
 by substituting '/' for '.' just like the Java packaging scheme. So 
 `"com.anthill.worker"` will be fetched from `"com/anthill/worker.js"`.
-You can override this using `_package.config` as follows -
+You can override this using `package.config` as follows -
 
-    _package.config({
+    package.config({
         'com.anthill.worker': {path: 'worker2.js', alias: 'w2'},
         //...
     });
@@ -117,10 +117,10 @@ instead of `path:`. This works in node.js as well as in the browser.
 
 When concatenating files for minification, you do not want the package
 manager to automatically try to load dependencies. For such cases, you
-can use `_package.declare` to indicate that these packages will be
+can use `package.declare` to indicate that these packages will be
 loaded without the help of the package manager.
 
-    _package.declare([
+    package.declare([
         'com.anthill.worker',
         'com.anthill.fighter',
         //...
