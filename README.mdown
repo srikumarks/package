@@ -174,13 +174,13 @@ name, then there are related package names that you can access as well, such as
     package("com.anthill.worker")
 
 
-## Using builder.js and configure.js ##
+## Using builde and configure ##
 
 The loading facility in `package.js` is alright, but you never want to
 actually deploy an application like that because the load times for
 the various packages just add up. What you need to do is to concatenate
 all the packages you need into a single file and minify it and ship
-that instead. `configure.js` and `builder.js` are Node programs that
+that instead. `configure` and `builder` are Node command-line programs that
 help you do that.
 
 If you run the programs without any arguments, they'll print out a
@@ -188,7 +188,7 @@ small usage hint.
 
 ### configure.js ###
 
-    Usage: node configure.js file1.js file2.js ... > build-config.js
+    Usage: configure file1.js file2.js ... > build-config.js
 
 Generates (to stdout) `package.config` declarations for all the packages
 found in the given files. The order of the files is irrelevant and there can
@@ -200,9 +200,9 @@ package it needs.
 
 ### build.js ###
 
-    Usage: node build.js [build-config.js] main.js > concatenated.js
+    Usage: build [build-config.js] main.js > concatenated.js
 
-`build.js` scans all packages in `main.js` and generates a single concatenated
+`build` scans all packages in `main.js` and generates a single concatenated
 output containing all the packages necessary to run the code in `main.js`,
 including `main.js` itself. The resulting `concatenated.js` can be passed
 to a minifier such as the closure compiler directly.

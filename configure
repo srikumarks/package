@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Given a number of files, scans them and generates package.config declarations
 // for the packages in those files. Also takes into account any configuration
 // information declared explicitly in them.
