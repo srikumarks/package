@@ -42,7 +42,7 @@ This is the main form of package definition which specifies a package
 by name, declares its dependencies in an array and provides a definition
 function whose return value serves as the package object.
 
-`name` is a full package name. The intention is to gave globally unique
+`name` is a full package name. The intention is to have globally unique
 package names, so the "reverse DNS" style of Java is accepted, though
 you can deviate from that. However, the name must be in the form of 
 JS identifiers separated by a periods such as `com.anthill.worker`.
