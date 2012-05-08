@@ -186,7 +186,7 @@ help you do that.
 If you run the programs without any arguments, they'll print out a
 small usage hint.
 
-### configure.js ###
+### configure ###
 
     Usage: configure file1.js file2.js ... > build-config.js
 
@@ -198,7 +198,7 @@ If you then use the resulting `build-config.js` file as the first file
 you pass to `build.js`, then the builder will know where to find every
 package it needs.
 
-### build.js ###
+### build ###
 
     Usage: build [build-config.js] main.js > concatenated.js
 
