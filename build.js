@@ -264,7 +264,8 @@ var packagefn = (function (out) {
     }
 
     function loadPackageFromURL(name, url) {
-        require('http').get(require('url').parse(url), function (res) {
+        var urlp = require('url').parse(url);
+        require(urlp.protocol.split(':')[0]).get(urlp, function (res) {
             var source = "";
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
