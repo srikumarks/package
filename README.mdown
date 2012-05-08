@@ -174,7 +174,7 @@ name, then there are related package names that you can access as well, such as
     package("com.anthill.worker")
 
 
-## Using builde and configure ##
+## Using build and configure ##
 
 The loading facility in `package.js` is alright, but you never want to
 actually deploy an application like that because the load times for
