@@ -59,6 +59,23 @@ var packagefn = (function (out) {
 
     var aliases = {}; // Maps short names to full package names.
 
+    // Valid package names are those that are not any of
+    // the builtin members of Function objects in JS,
+    // which includes raw objects as well. This excludes
+    // stuff like 'constructor', 'toString', etc. as package
+    // names. It returns the name if valid, throws an exception
+    // if not valid.
+    var validPkgName = (function () {
+        function dummyFn() {}
+        return function (n) {
+            if (dummyFn[n]) {
+                throw new Error('Invalid package component name [' + n + ']');
+            } else {
+                return n;
+            }
+        };
+    }());
+
     // Gets path specified in config, or derives a path
     // from the package name by replacing '.' with '/'.
     function packagePath(name) {
@@ -109,7 +126,7 @@ var packagefn = (function (out) {
     }
 
     function fullname(name) {
-        return 'package.' + replaceAll(name, /\-/, '_');
+        return 'package._.' + replaceAll(name, /\-/, '_');
     }
 
     // Inside a package definition function, "this"
@@ -138,6 +155,7 @@ var packagefn = (function (out) {
     function declPkg(name) {
         var name_ = fullname(name);
         name.split('.').forEach(function (part, i, parts) {
+            validPkgName(part);
             var n = parts.slice(0, i+1).join('.');
             if (!packages[n]) {
                 var n_ = fullname(n);
@@ -329,6 +347,7 @@ var packagefn = (function (out) {
     //  This function sets up all those alternative paths.
     function setPackagePatterns(components, p) {
         components.forEach(function (comp, i) {
+            validPkgName(comp);
             var n = components.slice(0, i).join('.');
             packages[n + '.*'] = n;
             packages[n] = n;
@@ -533,6 +552,7 @@ if (process.argv.length <= 2) {
         + 'try { window.document; return window; } catch (e) {}\n'
         + 'try { global.require; return global; } catch (e) {}\n'
         + '}());\n');
+    process.stdout.write('package._ = {};\n'); // package._ contains all packages.
     process.stdout.write('try { window["package"] = package; } catch (e) {}\n');
     process.stdout.write('try { module.exports = package; } catch (e) {}\n');
     process.argv.forEach(function (arg, i) {
