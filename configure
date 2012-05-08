@@ -31,7 +31,7 @@ package.config = function (cfg) {
 };
 
 if (process.argv.length <= 2) {
-    process.stderr.write('Usage: node configure file1.js file2.js ...\n');
+    process.stderr.write('Usage: configure file1.js file2.js ... > build-config.js\n');
     process.stderr.write("Will generate a package.config() declaration for all the packages\n");
     process.stderr.write("found in the given files to stdout. The order of the files is irrelevant,\n");
     process.stderr.write("so you don't need to know the package dependencies in advance. Just make\n");

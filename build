@@ -547,7 +547,7 @@ function package(name) {
 }
 
 if (process.argv.length <= 2) {
-    console.error('Usage: node build.js file1.js file2.js ... > concat.js');
+    console.error('Usage: build [build-config.js] file1.js file2.js ... > concatenated.js');
 } else {
     process.stdout.write(package.toString() + '\n');
     process.stdout.write('package.__global__ = (function () {\n'
