@@ -18,55 +18,37 @@ using, say, the closure compiler.
 
 ## Using package.js ##
 
-You can directly use the package within a HTML file during development as shown
+You can directly use `package` within a HTML file during development as shown
 below. During deployment, you can use the builder to combine multiple packages
 into a single file which you can then pass on to a minifier like the closure
 compiler.
 
     <script src="https://raw.github.com/srikumarks/package.js/master/package.js"></script>
+    <script>
+        package.config({
+            'org.molerat.underground.project': {url: 'http://molerat.org/underground/project.js'}
+        });
+        package('main', ['org.molerat.underground.project'], function (Project) {
+            // Do something after the main package has loaded.
+        });
+    </script>
 
-
-### package(name) ###
-
-Returns the currently loaded package of the given name. If `"com.anthill.worker"`
-is a valid package name, then there are related package names that you can
-access as well, such as `"com.anthill.*"` and `"com.*"`. Therefore all of
-the following are equivalent -
-
-    package("*").com.anthill.worker
-    package("com.*").anthill.worker
-    package("com.anthill.*").worker
-    package("com.anthill.worker")
-
-### package(name, definition) ###
-
-`definition` is either a normal value or a function. If the latter, it
-is called and the return value of the function is used as the package value.
-
-    package('com.anthill.worker', function () {
-        // prepare worker resources.
-        return worker;
-    });
-
-Within the package definition function, `this` refers to the current package
-object being defined, so you can also add exports by assigning properties
-to `this`. If you don't have a `return` statement within the definition
-function, or do a `return;` or a `return undefined;` then the value that
-`this` held is kept as the package value. Otherwise the package object is
-defined by the return value of the definition function. Doing it this way
-lets you augment an already defined package by writing a definition function
-that modifies `this`.
-
-> In contrast to [require.js], `package.js` doesn't mind you organizing your
-> packages in whatever way you want. The mapping between the package names and
-> file names is only provided as a convenience and the recommended way to use
-> `package` is to setup any file related mappings externally.  Stuff needed to
-> *build* a system shouldn't be mixed up with definitions of the system's
-> components.
+(Yes, you can load packages off URLs like that.) See the next section below for
+info on how to deploy concatenated/minified packages.
 
 ### package(name, dependencies, definition) ###
 
-`dependencies` is an array of package names that must be loaded before this
+This is the main form of package definition which specifies a package
+by name, declares its dependencies in an array and provides a definition
+function whose return value serves as the package object.
+
+`name` is a full package name. The intention is to gave globally unique
+package names, so the "reverse DNS" style of Java is accepted, though
+you can deviate from that. However, the name must be in the form of 
+JS identifiers separated by a periods such as `com.anthill.worker`.
+Hyphens are allowed in names as well.
+
+`dependencies` is an array of names of packages that must be loaded before this
 package's definition function can be called. Generally speaking, you need to
 specify full package names for the dependencies, but if the dependency shares
 the same parent package as the package being defined, it can be specified as a
@@ -93,8 +75,29 @@ a "main.js" package that lists every other sibling package as a dependency
 and does pretty much nothing else. Listing this main package as a dependency
 for another package will result in the whole package being loaded.
 
-The `this` support for extending packages described in the previous section 
-also applies to this three-argument form.
+`definition` is either a value or a function. If the latter, it
+is called and the return value of the function is used as the package value.
+
+    package('com.anthill.worker', function () {
+        // prepare worker resources.
+        return worker;
+    });
+
+Within the package definition function, `this` refers to the current package
+object being defined, so you can also add exports by assigning properties
+to `this`. If you don't have a `return` statement within the definition
+function, or do a `return;` or a `return undefined;` then the value that
+`this` held is kept as the package value. Otherwise the package object is
+defined by the return value of the definition function. Doing it this way
+lets you augment an already defined package by writing a definition function
+that modifies `this`.
+
+> In contrast to [require.js], `package.js` doesn't mind you organizing your
+> packages in whatever way you want. The mapping between the package names and
+> file names is only provided as a convenience and the recommended way to use
+> `package` is to setup any file related mappings externally.  Stuff needed to
+> *build* a system shouldn't be mixed up with definitions of the system's
+> components and descriptions of dependencies between them .. methinks.
 
 #### Experimental "__listing__" feature ####
 
@@ -142,6 +145,25 @@ and simply concat all the package definition files.
 I want to liberate source code from files and separating the mapping from
 package to source from the definition of a package and its dependencies
 is my little contribution to that.
+
+### package(name, definition) ###
+
+This is *exactly* the same as -
+    
+    package(name, [], definition)
+
+### package(name) ###
+
+Returns the currently loaded package of the given name. This is for use within
+a package's definition function. If `"com.anthill.worker"` is a valid package
+name, then there are related package names that you can access as well, such as
+`"com.anthill.*"` and `"com.*"`. All of the following are equivalent -
+
+    package("*").com.anthill.worker
+    package("com.*").anthill.worker
+    package("com.anthill.*").worker
+    package("com.anthill.worker")
+
 
 ## Using builder.js and configure.js ##
 
