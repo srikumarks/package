@@ -77,11 +77,15 @@ for another package will result in the whole package being loaded.
 
 `definition` is either a value or a function. If the latter, it
 is called and the return value of the function is used as the package value.
+The function's arguments have a one-to-one correspondence with the
+dependencies list -- the loaded dependencies are passed in as arguments
+to a package's definition function.
 
-    package('com.anthill.worker', function () {
-        // prepare worker resources.
-        return worker;
+    package('com.anthill.queen', ['.worker', '.fighter'], function (Worker, Fighter) {
+        // .. do something ..
+        return queen;
     });
+
 
 **this**: Within the package definition function, `this` refers to the current
 package object being defined, so you can also add exports by assigning
