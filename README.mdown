@@ -83,14 +83,19 @@ is called and the return value of the function is used as the package value.
         return worker;
     });
 
-Within the package definition function, `this` refers to the current package
-object being defined, so you can also add exports by assigning properties
-to `this`. If you don't have a `return` statement within the definition
-function, or do a `return;` or a `return undefined;` then the value that
-`this` held is kept as the package value. Otherwise the package object is
-defined by the return value of the definition function. Doing it this way
-lets you augment an already defined package by writing a definition function
-that modifies `this`.
+**this**: Within the package definition function, `this` refers to the current
+package object being defined, so you can also add exports by assigning
+properties to `this`. If you don't have a `return` statement within the
+definition function, or do a `return;` or a `return undefined;` then the value
+that `this` held is kept as the package value. Otherwise the package object is
+defined by the return value of the definition function. Doing it this way lets
+you augment an already defined package by writing a definition function that
+modifies `this`. Another reason to use `this` is that the
+`ADVANCED_OPTIMIZATIONS` mode of the [google closure compiler] can eliminate
+those exports that are not used by the application during the minification
+phase.
+
+[google closure compiler]: https://developers.google.com/closure/compiler/
 
 > In contrast to [require.js], `package.js` doesn't mind you organizing your
 > packages in whatever way you want. The mapping between the package names and
