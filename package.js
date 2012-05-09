@@ -77,11 +77,34 @@
     //      , url: "http://somewhere.com/somefile.js"  // Overrides 'path'
     //      , alias: "shortname"
     //      }
+    //  If the configuration is a function, then it is passed the
+    //  components of the required subpackage as an array and the return
+    //  value is expected to be an object with the above structure,
+    //  or undefined if the subpackage is invalid.
 
     var loadOrder = {};
     // Maps package name to number indicating when it was loaded.
 
     var aliases = {}; // Maps short names to full package names.
+
+    // Add a special generic configuration for github.
+    // If you have a package name of the form - "github.USERNAME.PROJECTNAME.x.y.z",
+    // it will be expected to be located at the URL -
+    //      "https://raw.github.com/USERNAME/PROJECTNAME/master/x/y/z.js"
+    config['github.*'] = function (components) {
+        if (components.length < 3) {
+            // Needs at least username, projectname and a filename.
+            return undefined;
+        }
+
+        var username = components[0];
+        var projectname = components[1];
+        var path = components.slice(2).join('/') + '.js';
+
+        return {
+            url: ('https://raw.github.com/' + username + '/' + projectname + '/master/' + path)
+        };
+    };
 
     // Valid package names are those that are not any of
     // the builtin members of Function objects in JS,
@@ -102,11 +125,45 @@
         };
     }());
 
+    // Search through the package hierarchy for a
+    // configuration. A configuration can be either an object
+    // with 'url' or 'path' fields, or a function which will
+    // return such an object when passed the subpackage 
+    // components as an array.
+    function findConfig(pkgname) {
+        var i, N, part, partArr, cfg;
+        var components = pkgname.split('.');
+        for (i = 0, N = components.length; i < N; ++i) {
+            partArr = components.slice(0, components.length - i);
+            if (i > 0) {
+                partArr.push('*'); // We're searching parent packages.
+            }
+            part = partArr.join('.');
+            cfg = config[part];
+            if (!cfg) {
+                continue;
+            }
+            if (cfg.constructor === Function) {
+                cfg = cfg(components.slice(components.length - i));
+                if (cfg) {
+                    break;
+                }
+            } else if (i === 0 && cfg.constructor === Object) {
+                break;
+            }
+        }
+        if (cfg) {
+            config[pkgname] = cfg; // Cache the config.
+        }
+        return cfg;
+    }
+
     // Gets path specified in config, or derives a path
     // from the package name by replacing '.' with '/'.
     function packagePath(name) {
-        if (name in config) {
-            return config[name].path;
+        var cfg = findConfig(name);
+        if (cfg) {
+            return cfg.path;
         } else {
             return name.replace(/\./g, '/') + '.js';
         }
@@ -114,7 +171,7 @@
 
     // Returns url if absolute one is specified.
     function packageURL(name) {
-        var cfg = config[name];
+        var cfg = findConfig(name);
         if (cfg && cfg.url && /^https?:\/\//.test(cfg.url)) {
             return cfg.url;
         } else {
@@ -410,9 +467,12 @@
 
         loadConfig(pname);
 
+        var pnamecfg = findConfig(pname);
+
         if (dependencies.length > 0) {
             dependencies.forEach(function (dep, i) {
                 var tname = trueName(dep);
+                var tnamecfg;
 
                 function onePkgLoaded(p) {
                     depPackages[i] = p;
@@ -427,19 +487,20 @@
                     // Auto expand it.
                     dep = pname.replace(/\.[^\.]+$/, dep);
                     tname = trueName(dep);
+                    tnamecfg = findConfig(tname);
 
                     // IMPORTANT:
                     // If pname has a config and this one doesn't, then
                     // assume it is going to be served up from the same location.
                     // This is an important simplification that lets you omit
                     // parent package prefixes of dependencies.
-                    if (config[pname] && !config[tname]) {
+                    if (pnamecfg && !tnamecfg) {
                         config[tname] = {};
-                        if (config[pname].path) {
-                            config[tname].path = relativePackagePath(config[pname].path, dep);
+                        if (pnamecfg.path) {
+                            config[tname].path = relativePackagePath(pnamecfg.path, dep);
                         }
-                        if (config[pname].url) {
-                            config[tname].url = relativePackagePath(config[pname].url, dep);
+                        if (pnamecfg.url) {
+                            config[tname].url = relativePackagePath(pnamecfg.url, dep);
                         }
                     }
                 }
