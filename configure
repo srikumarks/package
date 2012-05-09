@@ -30,6 +30,10 @@ package.config = function (cfg) {
     });
 };
 
+package.fetch = function () {
+    return ''; // Dummy
+};
+
 if (process.argv.length <= 2) {
     process.stderr.write('Usage: configure file1.js file2.js ... > build-config.js\n');
     process.stderr.write("Will generate a package.config() declaration for all the packages\n");
