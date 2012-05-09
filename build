@@ -291,19 +291,53 @@ var packagefn = (function (out) {
         }
     }
 
-    function fetch_url_sync_in_browser(url) {
+    function fetch_url_async_in_browser(url, callback, errback) {
         var req = new XMLHttpRequest();
-        req.open('GET', url, false);
+        req.open('GET', url, true);
+        req.onload = function () {
+            if (req.status === 200) {
+                callback(packagefn, url, req.responseText);
+            } else if (errback) {
+                errback("Module path [" + url + "] not found.");
+            }
+        };
         req.send();
-        if (req.status === 200) {
-            return req.responseText;
-        } else {
-            throw "Module path [" + url + "] not found.";
-        }
     }
 
-    function fetch_url_sync_from_fs(where) {
-        return require('fs').readFileSync(where, 'utf8');
+    function fetch_url_async(url, callback, errback) {
+        var urlp = require('url').parse(url);
+        if (urlp.protocol === 'http:' || urlp.protocol === 'https:') {
+            urlp.headers = {'Accept-Encoding': 'identity'};
+            require(urlp.protocol.split(':')[0]).get(urlp, function (res) {
+                var source = "";
+                res.setEncoding('utf8');
+                res.on('data', function (chunk) {
+                    source += chunk;
+                });
+                res.on('end', function () {
+                    callback(packagefn, url, source);
+                });
+                res.on('error', function (err) {
+                    if (errback) {
+                        errback(err);
+                    }
+                });
+            }).on('error', function (err) {
+                if (errback) {
+                    errback(err);
+                }
+            });
+        } else {
+            return require('fs').readFile(url, 'utf8', function (err, data) {
+                if (err) {
+                    if (errback) {
+                        errback(err);
+                    }
+                } else {
+                    callback(packagefn, url, data);
+                }
+            });
+        }
     }
 
     var with_package, fetch;
@@ -311,30 +345,19 @@ var packagefn = (function (out) {
         if (window.navigator) {
             // In browser
             with_package = with_package_in_browser;
-            fetch = fetch_url_sync_in_browser;
+            fetch = fetch_url_async_in_browser;
         }
     } catch (e) {
         // In Node.js
         with_package = with_package_in_fs;
-        fetch = fetch_url_sync_from_fs;
+        fetch = fetch_url_async;
     }
 
     function loadPackageFromURL(name, url) {
-        var urlp = require('url').parse(url);
-        require(urlp.protocol.split(':')[0]).get(urlp, function (res) {
-            var source = "";
-            res.setEncoding('utf8');
-            res.on('data', function (chunk) {
-                source += chunk;
-            });
-            res.on('end', function () {
-                packagefn.__CONFIG__ = {url: url};
-                definePackageFromSource(name, source);
-            });
-            res.on('error', function (err) {
-                console.error(err);
-            });
-        }).on('error', function (err) {
+        fetch_url_async(url, function (packagefn, url, source) {
+            package.__CONFIG__ = {url: url};
+            definePackageFromSource(name, source);
+        }, function (err) {
             console.error(err);
         });
     }
@@ -456,7 +479,7 @@ var packagefn = (function (out) {
     function package3(name, dependencies, definition) {
         var depPackages = [];
         var count = 0;
-        var pname = trueName(name);
+        var pname = trueName(validPkgName(name));
 
         loadConfig(pname);
 
@@ -524,15 +547,14 @@ var packagefn = (function (out) {
     }
 
     function package2(name, definition) {
-        var tname = trueName(name);
+        var tname = trueName(validPkgName(name));
         loadConfig(tname);
         return definePackage(tname, definition, []);
     }
 
     function package1(name) {
-        name = trueName(name);
-        return packages[name] || definePackageFromSource(name, 
-                                    fetch(packageURL(name) || packagePath(name)));
+        name = trueName(validPkgName(name));
+        return packages[name];
     }
 
     function packagefn() {
