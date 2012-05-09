@@ -135,6 +135,21 @@ and we can from this point on refer to the package just using `'w2'`.
 You can also directly fetch a package from a URL by specifying `url:` 
 instead of `path:`. This works in node.js as well as in the browser.
 
+You can also specify generic schemes for certain "domains" in the 
+package name. For example, if you want to map all package names
+of the form `com.anthill.XX.YY` to a URL like `http://anthill.com/packages/XX/YY.js`,
+you can specify the configuration like below -
+
+    package.config({
+        'com.anthill.*': (function (parts) {
+            // XX = parts[0]
+            // YY = parts[1], for example.
+            return {
+                url: ('http://anthill.com/packages/' + parts.join('/') + '.js')
+            };
+        })
+    });
+
 ### Forward delarations ###
 
 When concatenating files for minification, you do not want the package
