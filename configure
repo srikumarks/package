@@ -30,8 +30,8 @@ package.config = function (cfg) {
     });
 };
 
-package.fetch = function () {
-    return ''; // Dummy
+package.fetch = function (url, callback) {
+    callback(package, url, 'undefined'); // Dummy
 };
 
 if (process.argv.length <= 2) {
