@@ -65,21 +65,24 @@ var packagefn = (function (out) {
     // If you have a package name of the form - "github.USERNAME.PROJECTNAME.x.y.z",
     // it will be expected to be located at the URL -
     //      "https://raw.github.com/USERNAME/PROJECTNAME/master/x/y/z.js"
+    // .. and "github.USERNAME.PROJECTNAME" maps to
+    //      "https://raw.github.com/USERNAME/PROJECTNAME/master/PROJECTNAME.js"
     config['github.*'] = function (components) {
-        if (components.length < 3) {
+        if (components.length < 2) {
             // Needs at least username, projectname and a filename.
             return undefined;
         }
 
         var username = components[0];
         var projectname = components[1];
-        var path = components.slice(2).join('/') + '.js';
+        var path = (components.length === 2 ? projectname : components.slice(2).join('/')) + '.js';
 
         return {
             url: ('https://raw.github.com/' + username + '/' + projectname + '/master/' + path)
         };
     };
-    
+
+  
     // Valid package names are those that are not any of
     // the builtin members of Function objects in JS,
     // which includes raw objects as well. This excludes
