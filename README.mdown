@@ -35,6 +35,19 @@ compiler.
 (Yes, you can load packages off URLs like that.) See the next section below for
 info on how to deploy concatenated/minified packages.
 
+**Note:** `package` knows about some common Javascript frameworks and libraries. Below
+is a full list of package names that you can use to fetch and load these libraries. They
+can be used with `package.js` as well as `build`.
+
+1. `jQuery` (version 1.7.2)
+2. `Underscore` (latest)
+3. `Backbone` (latest)
+4. `Prototype` (version 1.7.0.0)
+5. `MooTools` (version 1.4.5-full-nocompat)
+
+You can override the builtin configurations for these libraries using `package.config` or
+`package.external` (see below).
+
 ### package(name, dependencies, definition) ###
 
 This is the main form of package definition which specifies a package
