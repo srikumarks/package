@@ -1,18 +1,17 @@
 
-`package.js` is a package manager very very similar to [require.js].
-I quite like *most* of the design decisions that went into it, but one
-point I don't agree with is that modules are referred to using paths, 
-which makes module *use* depends on which file contains the module
-*definition*.
+`package.js` is a package manager very very similar to [require.js].  I quite
+like *most* of the design decisions that went into it, but one point I don't
+agree with is that modules are referred to using paths, which makes module
+*use* depend on which file contains the module *definition*.
 
-`package.js` on the other hand requires you to provide a package
-name that is likely globally unique .. and is closer to the "goog.provide"
-approach. Package names are therefore of the form `"from.top.to.bottom"`.
-This is also compatible with the Java-like reverse-DNS package naming 
-conventions.
+`package.js` on the other hand requires you to provide a package name that is
+likely globally unique .. and is closer to the "goog.provide" approach. Package
+names are therefore of the form `"from.top.to.bottom"`.  This is also
+compatible with the Java-like reverse-DNS package naming conventions.
 
-Just like [require.js], `package` also lends itself to easy minification
-using, say, the closure compiler.
+Just like [require.js], `package` also lends itself to easy minification using,
+say, the closure compiler. You can combine packages into a single file for
+distribution using the `build` tool.
 
 [require.js]: http://requirejs.org/
 
@@ -43,26 +42,26 @@ by name, declares its dependencies in an array and provides a definition
 function whose return value serves as the package object.
 
 `name` is a full package name. The intention is to have globally unique
-package names, so the "reverse DNS" style of Java is accepted, though
+package names, so the "reverse DNS" style of Java is preferred, though
 you can deviate from that. However, the name must be in the form of 
-JS identifiers separated by a periods such as `com.anthill.worker`.
+JS identifiers separated by periods such as `com.anthill.worker`.
 Hyphens are allowed in names as well.
 
 `dependencies` is an array of names of packages that must be loaded before this
-package's definition function can be called. Generally speaking, you need to
-specify full package names for the dependencies, but if the dependency shares
-the same parent package as the package being defined, it can be specified as a
-"sibling" by starting its name with a "." and omitting the common prefix.  For
-example, the following two are equivalent -
+package can be defined. Generally speaking, you need to specify full package
+names for the dependencies, but if the dependency shares the same parent
+package as the package being defined, it can be specified as a "sibling" by
+starting its name with a "." and omitting the common prefix.  For example, the
+following two are equivalent -
 
     package('com.anthill.fighter', ['com.anthill.worker'], function (Worker) {
         // .. do something ..
-        return worker;
+        return fighter;
     });
 
     package('com.anthill.fighter', ['.worker'], function (Worker) {
         // .. do something ..
-        return worker;
+        return fighter;
     });
 
 One other handy feature when you use such relative package names is
