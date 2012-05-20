@@ -347,17 +347,19 @@
         }
     }
 
-    var with_package, fetch;
+    var with_package, fetch, loadExternalModuleFromURL;
     try {
         if (window.navigator) {
             // In browser
             with_package = with_package_in_browser;
-            fetch = fetch_url_async_in_browser;          
+            fetch = fetch_url_async_in_browser; 
+            loadExternalModuleFromURL = loadExternalModuleFromURL_browser;
         }
     } catch (e) {
         // In Node.js
         with_package = with_package_in_fs;
         fetch = fetch_url_async;
+        loadExternalModuleFromURL = loadExternalModuleFromURL_node;
     }
 
     function loadPackageFromURL(name, url) {
@@ -428,7 +430,7 @@
     // An external module is something that doesn't use package to wrap it.
     // This includes libraries such as jquery, backbone, underscore and any
     // other that wishes to be directly used in an app using a <script> url.
-    function loadExternalModuleFromURL(pkgname, url, depPkgNames, depVarNames, exportedName) {
+    function loadExternalModuleFromURL_node(pkgname, url, depPkgNames, depVarNames, exportedName) {
         package.fetch(url, function (package, url, source) {
             package(pkgname, ['#global'].concat(depPkgNames), 
                 eval('(function (' + ['__window__'].concat(depVarNames).join(',') + ') {\n'
@@ -443,6 +445,11 @@
         });
     }
 
+    function loadExternalModuleFromURL_browser(pkgname, url, depPkgNames, depVarNames, exportedName) {
+        document.write('<script src="' + url + '"></script>');
+        document.write('<script>package(' + JSON.stringify(pkgname) 
+                    + ', function () { return ' + exportedName + '; });</script>');
+    }
 
     // If you load a package named 'blah.bling.meow',
     // then you can get the package in a number of ways -
@@ -680,6 +687,7 @@
         if (window.navigator && document.createElement) {
             // TODO: Figure out a way to auto-add the package registry before
             // the other code loads.
+            document.write('<script src="https://raw.github.com/srikumarks/package_registry/master/packages.js"></script>');
         }
     } catch (e) {
         // In node.js
