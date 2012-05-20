@@ -260,3 +260,6 @@ to a minifier such as the closure compiler directly.
 The contents of `concatenated.js` are independent of `package.js` and you
 don't need to include `package.js` in your HTML file after you build your
 application like this.
+
+Run `build cache` to fetch config for known packages from 
+http://github.com/srikumarks/package_registry

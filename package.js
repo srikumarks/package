@@ -107,48 +107,6 @@
             url: ('https://raw.github.com/' + username + '/' + projectname + '/master/' + path)
         };
     };
-    
-    // Some common external packages used.
-    config['jQuery'] = {
-        external: {
-            url: 'http://code.jquery.com/jquery-1.7.2.js',
-            dependsOn: [],
-            depNames: [],
-            name: '$'
-        }
-    };
-    config['Underscore'] = {
-        external: {
-            url: 'https://raw.github.com/documentcloud/underscore/master/underscore.js',
-            dependsOn: [],
-            depNames: [],
-            name: '_'
-        }
-    };
-    config['Backbone'] = {
-        external: {
-            url: 'https://raw.github.com/documentcloud/backbone/master/backbone.js',
-            dependsOn: ['Underscore'],
-            depNames: ['_'],
-            name: 'Backbone'
-        }
-    };
-    config['Prototype'] = {
-        external: {
-            url: 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.0.0/prototype.js',
-            dependsOn: [],
-            depNames: [],
-            name: 'Prototype'
-        }
-    };
-    config['MooTools'] = {
-        external: {
-            url: 'http://mootools.net/download/get/mootools-core-1.4.5-full-nocompat.js',
-            name: 'MooTools',
-            dependsOn: [],
-            depNames: []
-        }
-    };
 
     // Valid package names are those that are not any of
     // the builtin members of Function objects in JS,
@@ -394,7 +352,7 @@
         if (window.navigator) {
             // In browser
             with_package = with_package_in_browser;
-            fetch = fetch_url_async_in_browser;
+            fetch = fetch_url_async_in_browser;          
         }
     } catch (e) {
         // In Node.js
@@ -700,6 +658,35 @@
     };
 
     package.loadOrder = 1;
+
+    function loadKnownPackageConfig() {
+        var cacheFile = './.packages.js';
+        var fs = require('fs');
+        fs.stat(cacheFile, function (err, stat) {
+            function loadSource(source) {
+                eval('(function (package) {\n' + source + '\n})')(package);
+            }
+
+            if (err) {
+                console.error("Run 'build cache' to get known configurations.");
+                throw new Error("Known package config not downloaded yet.");
+            } else {
+                loadSource(fs.readFileSync(cacheFile, 'utf8'));
+            }
+        });
+    }
+        
+    try {
+        if (window.navigator && document.createElement) {
+            // In browser.
+            var script = document.createElement('script');
+            script.setAttribute('src', 'https://raw.github.com/srikumarks/package_registry/master/packages.js');
+            document.head.insertAdjacentElement('afterbegin', script);  
+        }
+    } catch (e) {
+        // In node.js
+        loadKnownPackageConfig();        
+    }
 
     return package;
 }())));

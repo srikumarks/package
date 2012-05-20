@@ -697,6 +697,26 @@ var packagefn = (function (out) {
 
 var fs = require('fs');
 
+function loadKnownPackageConfig(force, next) {
+    var cacheFile = './.packages.js';
+    fs.stat(cacheFile, function (err, stat) {
+        function loadSource(source) {
+            eval('(function (package) {\n' + source + '\n})')(packagefn);
+            next && next();
+        }
+
+        if (err || force) {
+            packagefn.fetch('https://raw.github.com/srikumarks/package_registry/master/packages.js'
+                , function (package, url, source) {
+                    fs.writeFileSync(cacheFile, source, 'utf8');
+                    loadSource(source);
+                });
+        } else {
+            loadSource(fs.readFileSync(cacheFile, 'utf8'));
+        }
+    });
+}
+
 function package(name) {
     var hyphen = /\-/g;
     while (hyphen.test(name)) {
@@ -710,9 +730,7 @@ function package(name) {
     return root;
 }
 
-if (process.argv.length <= 2) {
-    console.error('Usage: build [build-config.js] file1.js file2.js ... > concatenated.js');
-} else {
+function main() {
     process.stdout.write(package.toString() + '\n');
     process.stdout.write('package.__global__ = (function () {\n'
         + 'try { window.document; return window; } catch (e) {}\n'
@@ -728,4 +746,14 @@ if (process.argv.length <= 2) {
             eval('(function (package) {\n' + source + '\n})')(packagefn);
         }
     });
+}
+
+// Call without arguments to fetch ".package.js" file containing configuration 
+// about known packages.
+if (process.argv.length <= 2) {
+    console.error('Usage: build [build-config.js] file1.js file2.js ... > concatenated.js');
+} else if (process.argv.length <= 3 && process.argv[2] === 'cache') {
+    loadKnownPackageConfig(true, null);
+} else {
+    loadKnownPackageConfig(false, main);
 }
