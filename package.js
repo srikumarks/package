@@ -107,6 +107,32 @@
             url: ('https://raw.github.com/' + username + '/' + projectname + '/master/' + path)
         };
     };
+    
+    // Some common external packages used.
+    config['jQuery'] = {
+        external: {
+            url: 'http://code.jquery.com/jquery-1.7.2.js',
+            dependsOn: [],
+            depNames: [],
+            name: '$'
+        }
+    };
+    config['Underscore'] = {
+        external: {
+            url: 'https://raw.github.com/documentcloud/underscore/master/underscore.js',
+            dependsOn: [],
+            depNames: [],
+            name: '_'
+        }
+    };
+    config['Backbone'] = {
+        external: {
+            url: 'https://raw.github.com/documentcloud/backbone/master/backbone.js',
+            dependsOn: ['Underscore'],
+            depNames: ['_'],
+            name: 'Backbone'
+        }
+    };
 
     // Valid package names are those that are not any of
     // the builtin members of Function objects in JS,
@@ -256,9 +282,14 @@
             loading[name] = true;
             addOnLoad(name, callback);
             if (!pseudoPackage(name)) {
-                var script = document.createElement('script');
-                script.setAttribute('src', packagePath(name));
-                document.head.insertAdjacentElement('beforeend', script);
+                var cfg = findConfig(name);
+                if (cfg.external) {
+                    loadExternalModuleFromURL(name, cfg.external.url, cfg.external.dependsOn, cfg.external.depNames, cfg.external.name);
+                } else {
+                    var script = document.createElement('script');
+                    script.setAttribute('src', packagePath(name));
+                    document.head.insertAdjacentElement('beforeend', script);
+                }
             }
         }
     }
@@ -277,12 +308,17 @@
             loading[name] = true;
             addOnLoad(name, callback);
             if (!pseudoPackage(name)) {
-                where = packageURL(name);
-                if (where) {
-                    loadPackageFromURL(name, where);
+                var cfg = findConfig(name);
+                if (cfg.external) {
+                    loadExternalModuleFromURL(name, cfg.external.url, cfg.external.dependsOn, cfg.external.depNames, cfg.external.name);
                 } else {
-                    where = packagePath(name);
-                    loadPackageFromDisk(name, where);
+                    where = packageURL(name);
+                    if (where) {
+                        loadPackageFromURL(name, where);
+                    } else {
+                        where = packagePath(name);
+                        loadPackageFromDisk(name, where);
+                    }
                 }
             }
         }
@@ -414,6 +450,25 @@
             }
         }
     }
+
+    // An external module is something that doesn't use package to wrap it.
+    // This includes libraries such as jquery, backbone, underscore and any
+    // other that wishes to be directly used in an app using a <script> url.
+    function loadExternalModuleFromURL(pkgname, url, depPkgNames, depVarNames, exportedName) {
+        package.fetch(url, function (package, url, source) {
+            package(pkgname, ['#global'].concat(depPkgNames), 
+                eval('(function (' + ['__window__'].concat(depVarNames).join(',') + ') {\n'
+                    + 'var module = {exports: {}}, exports = module.exports;\n'
+                    + 'var window = Object.create(__window__);\n'
+                    + depVarNames.map(function (n) { return 'window.' + n + ' = ' + n + ';\n'; }).join('')
+                    + 'return (function () {\n'
+                        + source
+                        + '\nreturn this.' + exportedName + ' || module.exports;\n'
+                        + '}).call(window);\n'
+                    + '})'));
+        });
+    }
+
 
     // If you load a package named 'blah.bling.meow',
     // then you can get the package in a number of ways -
@@ -615,6 +670,17 @@
                 loading[pnameres] = true;
             }
         });
+    };
+
+    package.external = function (pkgname, exportedName, url, dependsOn, depNames) {
+        var cfg = {};
+        cfg[pkgname] = { external: {
+            url: url,
+            dependsOn: dependsOn || [],
+            depNames: depNames || dependsOn || [],
+            name: exportedName
+        }};
+        package.config(cfg);
     };
 
     package.loadOrder = 1;

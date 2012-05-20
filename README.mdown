@@ -150,6 +150,29 @@ you can specify the configuration like below -
         })
     });
 
+There are useful public modules such as jQuery, Backbone and Underscore
+that are not defined using the package structure. You can use the 
+declare `external` configuration for such libraries that are expected to be used 
+via `<script>` inclusion.
+
+    package.config({
+        'BB': { external: {
+            url: 'https://raw.github.com/documentcloud/backbone/master/backbone.js',
+            name: 'Backbone',
+            dependsOn: ['Underscore'],
+            depNames: ['_']
+        }}
+    });
+
+or equivalently using the `package.external` function --
+    
+    package.external('BB', 'Backbone', 'https://raw.github.com/documentcloud/backbone/master/backbone.js', ['Underscore'], ['_']);
+
+The `dependsOn` field is an array of package names that this external module
+depends on and `depNames` is matching array of names through which it expects
+to access those packages.  The `name` field is the exported name of the module.
+For example, jQuery exports itself as `'$'`.
+
 ### Forward delarations ###
 
 When concatenating files for minification, you do not want the package
