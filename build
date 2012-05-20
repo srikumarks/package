@@ -702,7 +702,7 @@ function package(name) {
     while (hyphen.test(name)) {
         name = name.replace(hyphen, '_');
     }
-    name = name.replace(/\.\*$/, '');
+    name = name.replace(/\.?\*$/, '');
     var root = package._;
     name.split('.').forEach(function (part) {
         root = root[part];
