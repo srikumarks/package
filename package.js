@@ -681,7 +681,7 @@
             // In browser.
             var script = document.createElement('script');
             script.setAttribute('src', 'https://raw.github.com/srikumarks/package_registry/master/packages.js');
-            document.head.insertAdjacentElement('afterbegin', script);  
+            document.head.querySelector('script').insertAdjacentElement('afterend', script);
         }
     } catch (e) {
         // In node.js
