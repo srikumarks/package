@@ -678,10 +678,8 @@
         
     try {
         if (window.navigator && document.createElement) {
-            // In browser.
-            var script = document.createElement('script');
-            script.setAttribute('src', 'https://raw.github.com/srikumarks/package_registry/master/packages.js');
-            document.head.querySelector('script').insertAdjacentElement('afterend', script);
+            // TODO: Figure out a way to auto-add the package registry before
+            // the other code loads.
         }
     } catch (e) {
         // In node.js
