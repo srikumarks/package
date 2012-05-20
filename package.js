@@ -133,6 +133,22 @@
             name: 'Backbone'
         }
     };
+    config['Prototype'] = {
+        external: {
+            url: 'https://ajax.googleapis.com/ajax/libs/prototype/1.7.0.0/prototype.js',
+            dependsOn: [],
+            depNames: [],
+            name: 'Prototype'
+        }
+    };
+    config['MooTools'] = {
+        external: {
+            url: 'http://mootools.net/download/get/mootools-core-1.4.5-full-nocompat.js',
+            name: 'MooTools',
+            dependsOn: [],
+            depNames: []
+        }
+    };
 
     // Valid package names are those that are not any of
     // the builtin members of Function objects in JS,
