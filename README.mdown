@@ -36,7 +36,7 @@ compiler.
 info on how to deploy concatenated/minified packages.
 
 **Note:** `package` knows about some common Javascript frameworks and libraries. Below
-is a full list of package names that you can use to fetch and load these libraries. They
+is a list of package names that you can use to fetch and load these libraries. They
 can be used with `package.js` as well as `build`.
 
 1. `jQuery` (version 1.7.2)
@@ -46,7 +46,10 @@ can be used with `package.js` as well as `build`.
 5. `MooTools` (version 1.4.5-full-nocompat)
 
 You can override the builtin configurations for these libraries using `package.config` or
-`package.external` (see below).
+`package.external` (see below). See [package_registry] for a full list. Feel free to
+send pull requests to add packages to the registry.
+
+[package_registry]: https://github.com/srikumarks/package_registry
 
 ### package(name, dependencies, definition) ###
 
