@@ -34,13 +34,53 @@ package.fetch = function (url, callback) {
     callback(package, url, 'undefined'); // Dummy
 };
 
+package.declare = function () {
+    // no op
+};
+
+package.external = function (pkgname, exportedName, url, dependsOn, depNames) {
+    var cfg = {};
+    cfg[pkgname] = { external: {
+        url: url,
+        dependsOn: dependsOn || [],
+        depNames: depNames || dependsOn || [],
+        name: exportedName
+    }};
+    package.config(cfg);
+};
+
+
+function fetchKnownPackageConfigs(next) {
+    var urlp = require('url').parse('https://raw.github.com/srikumarks/package_registry/master/packages.js');
+    urlp.headers = {'Accept-Encoding': 'identity'};
+    require(urlp.protocol.split(':')[0]).get(urlp, function (res) {
+        var source = "";
+        res.setEncoding('utf8');
+        res.on('data', function (chunk) {
+            source += chunk;
+        });
+        res.on('end', function () {
+            eval('(function (package) {\n' + source + '\n})')(package);
+            require('fs').writeFileSync('./.package.js', source, 'utf8');
+            next && next();
+        });
+        res.on('error', function (err) {
+            next && next();
+        });
+    }).on('error', function (err) {
+        next && next();
+    });
+}
+
 if (process.argv.length <= 2) {
     process.stderr.write('Usage: configure file1.js file2.js ... > build-config.js\n');
     process.stderr.write("Will generate a package.config() declaration for all the packages\n");
     process.stderr.write("found in the given files to stdout. The order of the files is irrelevant,\n");
     process.stderr.write("so you don't need to know the package dependencies in advance. Just make\n");
     process.stderr.write("the generated configuration the first file you provide to the build.js.\n");
-} else {
+} 
+
+function main() {
     process.argv.slice(2).forEach(function (arg, i, argv) {
         package.__PATH__ = arg;
         eval('(function (package) {\n' + require('fs').readFileSync(arg, 'utf8') + '\n})')(package);
@@ -48,3 +88,5 @@ if (process.argv.length <= 2) {
 
     process.stdout.write('package.config(' + JSON.stringify(package.__configurations__, null, 4) + ');\n');
 }
+
+fetchKnownPackageConfigs(main);
