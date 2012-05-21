@@ -248,6 +248,12 @@ If you then use the resulting `build-config.js` file as the first file
 you pass to `build.js`, then the builder will know where to find every
 package it needs.
 
+The `configure` script knows about the [registry of known packages] maintained
+on github. You can include the contents of this registry in the generated
+configuration by using "-r" or "--registry" as the first argument.
+
+[registry of known packages]: https://github.com/srikumarks/package_registry
+
 ### build ###
 
     Usage: build [build-config.js] main.js > concatenated.js
