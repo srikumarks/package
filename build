@@ -702,7 +702,6 @@ function loadKnownPackageConfig(force, next) {
     fs.stat(cacheFile, function (err, stat) {
         function loadSource(source) {
             eval('(function (package) {\n' + source + '\n})')(packagefn);
-            next && next();
         }
 
         if (err || force) {
@@ -710,7 +709,11 @@ function loadKnownPackageConfig(force, next) {
                 , function (package, url, source) {
                     fs.writeFileSync(cacheFile, source, 'utf8');
                     loadSource(source);
-                });
+                    next && next();
+                  }
+                , function () {
+                    next && next();
+                  });
         } else {
             loadSource(fs.readFileSync(cacheFile, 'utf8'));
         }
