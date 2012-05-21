@@ -675,7 +675,7 @@
             }
 
             if (err) {
-                console.error("Run 'build cache' to get known configurations.");
+                console.error("Run 'configure -r' to get known configurations.");
                 throw new Error("Known package config not downloaded yet.");
             } else {
                 loadSource(fs.readFileSync(cacheFile, 'utf8'));

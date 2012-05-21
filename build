@@ -697,29 +697,6 @@ var packagefn = (function (out) {
 
 var fs = require('fs');
 
-function loadKnownPackageConfig(force, next) {
-    var cacheFile = './.packages.js';
-    fs.stat(cacheFile, function (err, stat) {
-        function loadSource(source) {
-            eval('(function (package) {\n' + source + '\n})')(packagefn);
-        }
-
-        if (err || force) {
-            packagefn.fetch('https://raw.github.com/srikumarks/package_registry/master/packages.js'
-                , function (package, url, source) {
-                    fs.writeFileSync(cacheFile, source, 'utf8');
-                    loadSource(source);
-                    next && next();
-                  }
-                , function () {
-                    next && next();
-                  });
-        } else {
-            loadSource(fs.readFileSync(cacheFile, 'utf8'));
-        }
-    });
-}
-
 function package(name) {
     var hyphen = /\-/g;
     while (hyphen.test(name)) {
@@ -755,8 +732,6 @@ function main() {
 // about known packages.
 if (process.argv.length <= 2) {
     console.error('Usage: build [build-config.js] file1.js file2.js ... > concatenated.js');
-} else if (process.argv.length <= 3 && process.argv[2] === 'cache') {
-    loadKnownPackageConfig(true, null);
 } else {
-    loadKnownPackageConfig(false, main);
+    main();
 }
