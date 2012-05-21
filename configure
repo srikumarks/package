@@ -78,15 +78,34 @@ if (process.argv.length <= 2) {
     process.stderr.write("found in the given files to stdout. The order of the files is irrelevant,\n");
     process.stderr.write("so you don't need to know the package dependencies in advance. Just make\n");
     process.stderr.write("the generated configuration the first file you provide to the build.js.\n");
+    process.stderr.write("\nThe '-r' or '--registry' flag can be used to fetch the registry\n");
+    process.stderr.write("of known packages.\n\n");
 } 
 
 function main() {
-    process.argv.slice(2).forEach(function (arg, i, argv) {
-        package.__PATH__ = arg;
-        eval('(function (package) {\n' + require('fs').readFileSync(arg, 'utf8') + '\n})')(package);
-    });
+    var slicedArgs = process.argv.slice(2);
+    var i = 0, arg;
+    function iter() {
+        if (i < slicedArgs.length) {
+            arg = slicedArgs[i++];
+            switch (arg) {
+                case '-r': 
+                case '--registry':
+                    fetchKnownPackageConfigs(iter);
+                    break;
+                default: 
+                    package.__PATH__ = arg;
+                    eval('(function (package) {\n' + require('fs').readFileSync(arg, 'utf8') + '\n})')(package);
+                    process.nextTick(iter);
+            }
+        } else {
+            process.stdout.write('package.config(' + JSON.stringify(package.__configurations__, null, 4) + ');\n');
+        }
+    }
 
-    process.stdout.write('package.config(' + JSON.stringify(package.__configurations__, null, 4) + ');\n');
+    if (slicedArgs.length > 0) {
+        iter();
+    }
 }
 
-fetchKnownPackageConfigs(main);
+main();
