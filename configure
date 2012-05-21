@@ -18,8 +18,15 @@ package.__configurations__  = {}
 
 package.config = function (cfg) {
     Object.keys(cfg).forEach(function (k) {
-        if (package.__configurations__.hasOwnProperty(k) 
-                && JSON.stringify(package.__configurations__[k]) !== JSON.stringify(cfg[k])) {
+        // path configurations override non-path configurations
+        // (i.e. urls and externals). This lets you give preference
+        // to local files over what is fetched from the net. Otherwise,
+        // we flag a "conflict" and report to user.
+        var conflict = package.__configurations__.hasOwnProperty(k)
+            && !(cfg[k].path && !package.__configurations__[k].path)
+            && JSON.stringify(package.__configurations__[k]) !== JSON.stringify(cfg[k]);
+
+        if (conflict) {
             console.error("Package [" + k + "] has conflicting configuration!");
             console.error("\tPrevious: " + JSON.stringify(package.__configurations__[k]));
             console.error("\tNew: " + JSON.stringify(cfg[k]));
