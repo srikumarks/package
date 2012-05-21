@@ -61,6 +61,7 @@ function fetchKnownPackageConfigs(next) {
         });
         res.on('end', function () {
             eval('(function (package) {\n' + source + '\n})')(package);
+            require('fs').writeFileSync('./.package.js', source, 'utf8');
             next && next();
         });
         res.on('error', function (err) {
