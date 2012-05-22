@@ -244,13 +244,11 @@ var packagefn = (function (out) {
 
         if (definition && definition.constructor === Function) {
             out.write(pname_ + ' = (');
-            out.write(definition.toString() + ').apply(' + pname_ + ', [' + dependencies.join(',') + ']) || ' + pname_ + ';\n');
+            out.write(definition.toString() + ').call(' + [pname_].concat(dependencies).join(', ') + ') || ' + pname_ + ';\n');
         } else {
             out.write(pname_ + ' = (' + JSON.stringify(definition) + ');\n');
         }
         return pname_;
-        //        var p = definition.apply(pkg, dependencies);
-        //        return p === undefined ? pkg : p;
     }
 
     function declPkg(name) {
