@@ -106,7 +106,22 @@ function main() {
                     process.nextTick(iter);
             }
         } else {
-            process.stdout.write('package.config(' + JSON.stringify(package.__configurations__, null, 4) + ');\n');
+            process.stdout.write('package.config({\n');
+            Object.keys(package.__configurations__).forEach(function (c, i, keys) {
+                process.stdout.write('    ' + JSON.stringify(c) + ': ');
+                var cfg = package.__configurations__[c];
+                if (cfg && cfg.constructor === Function) {
+                    process.stdout.write('(' + cfg.toString() + ')');
+                } else {
+                    process.stdout.write(JSON.stringify(cfg));
+                }
+                if (i + 1 < keys.length) {
+                    process.stdout.write(',\n');
+                } else {
+                    process.stdout.write('\n');
+                }
+            });
+            process.stdout.write('});\n');
         }
     }
 
