@@ -522,7 +522,7 @@
                     }
                 }
 
-                if (/^\.[^\.]+$/.test(dep)) {
+                if (/^\./.test(dep)) {
                     // Relative package name starting with a period.
                     // Auto expand it.
                     dep = pname.replace(/\.[^\.]+$/, dep);
