@@ -236,7 +236,7 @@
             addOnLoad(name, callback);
             if (!pseudoPackage(name)) {
                 var cfg = findConfig(name);
-                if (cfg.external) {
+                if (cfg && cfg.external) {
                     loadExternalModuleFromURL(name, cfg.external.url, cfg.external.dependsOn, cfg.external.depNames, cfg.external.name);
                 } else {
                     var script = document.createElement('script');
@@ -262,7 +262,7 @@
             addOnLoad(name, callback);
             if (!pseudoPackage(name)) {
                 var cfg = findConfig(name);
-                if (cfg.external) {
+                if (cfg && cfg.external) {
                     loadExternalModuleFromURL(name, cfg.external.url, cfg.external.dependsOn, cfg.external.depNames, cfg.external.name);
                 } else {
                     where = packageURL(name);
