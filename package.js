@@ -177,8 +177,9 @@
 
     function definePackageFromSource(name, source) {
         loadConfig(name);
-        var closure = eval('(function (package, __pkgname__) {\n' + source + ';\n})');
-        closure(package, name);
+        var closure = eval('(function (package) {\n' + source + ';\n})');
+        package.__config_name__ = name;
+        closure(package);
         return packages[name];
     }
 
@@ -571,14 +572,25 @@
     }
 
     function package2(name, definition) {
-        var tname = trueName(validPkgName(name));
-        loadConfig(tname);
-        return definePackage(tname, definition, []);
+        if (name.constructor === Array) {
+            // name is actuall the array of dependencies, since
+            // no name has been given.
+            return package3(package.__config_name__, arguments[0], definition);
+        } else {
+            var tname = trueName(validPkgName(name));
+            loadConfig(tname);
+            return definePackage(tname, definition, []);
+        }
     }
 
     function package1(name) {
-        name = trueName(validPkgName(name));
-        return packages[name];
+        if (name.constructor === Function) {
+            // Pure package definition with default name and no dependencies.
+            return package3(package.__config_name__, [], arguments[0]);
+        } else {
+            name = trueName(validPkgName(name));
+            return packages[name];
+        }
     }
 
     function package() {

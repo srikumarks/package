@@ -11,7 +11,13 @@
 // minify concatted.js > main.min.js
 
 function package(name) {
-    package.__configurations__[name] = {path: package.__PATH__};
+    if (typeof name === 'string') {
+        package.__configurations__[name] = {path: package.__PATH__};
+    } else {
+        // Ignore the cases where the package name is omitted.
+        // The configurations for those are already determined
+        // by the dependency declaration.
+    }
 }
 
 package.__configurations__  = {}
