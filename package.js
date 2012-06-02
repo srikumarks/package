@@ -34,33 +34,14 @@
 //      is fetched using http, even in Node.js environment.
 
 (function (package) {
-    try {
-        module.exports = package;
-        global.package = package;
-    } catch (e) {
-    }
-
-    try {
-        window["package"] = package;
-    } catch (e) {
-    }
+    this["package"] = package;
 }((function () {
 
-    var the_global_object;
+    var the_global_object = this;
 
-    try {
-        window.document;
-        the_global_object = window;
-    } catch (e) {
-    }
-    try {
-        global.require;
-        the_global_object = global;
-    } catch (e) {
-    }
-
-    var packages = {};
+    var packages = {'#global': the_global_object};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
+    // The global object pseudo-package '#global' come "pre-installed".
 
     var loading = {};
     // Every package that has started loading, but hasn't finished yet
@@ -161,7 +142,7 @@
     }
 
     function knownPackage(name) {
-        return packages[name] || (name === '#global' ? the_global_object : undefined);
+        return packages[name];
     }
 
     function trueName(name) {
@@ -327,14 +308,12 @@
     }
 
     var with_package, fetch, loadExternalModuleFromURL;
-    try {
-        if (window.navigator) {
-            // In browser
-            with_package = with_package_in_browser;
-            fetch = fetch_url_async_in_browser; 
-            loadExternalModuleFromURL = loadExternalModuleFromURL_browser;
-        }
-    } catch (e) {
+    if (the_global_object.navigator) {
+        // In browser
+        with_package = with_package_in_browser;
+        fetch = fetch_url_async_in_browser; 
+        loadExternalModuleFromURL = loadExternalModuleFromURL_browser;
+    } else {
         // In Node.js
         with_package = with_package_in_fs;
         fetch = fetch_url_async;
@@ -662,15 +641,13 @@
         });
     }
         
-    try {
-        if (window.navigator && document.createElement) {
-            // TODO: Figure out a way to auto-add the package registry before
-            // the other code loads.
-            document.write('<script src="https://raw.github.com/srikumarks/package_registry/master/packages.js"></script>');
-        }
-    } catch (e) {
+    if (the_global_object.navigator && the_global_object.document && the_global_object.document.write) {
+        // TODO: Figure out a way to auto-add the package registry before
+        // the other code loads.
+        the_global_object.document.write('<script src="https://raw.github.com/srikumarks/package_registry/master/packages.js"></script>');
+    } else {
         // In node.js
-        loadKnownPackageConfig();        
+        loadKnownPackageConfig();    
     }
 
     return package;

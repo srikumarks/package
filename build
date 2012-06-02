@@ -37,8 +37,9 @@
 
 var packagefn = (function (out) {
 
-    var packages = {};
+    var packages = {'#global': "package.__global__"};
     // Maps package names of the form "com.blah.bling" to package objects a.k.a. "modules".
+    // The global object pseudo package '#global' comes "pre-installed".
 
     var loading = {};
     // Every package that has started loading, but hasn't finished yet
@@ -198,7 +199,7 @@ var packagefn = (function (out) {
     }
 
     function knownPackage(name) {
-        return packages[name] || (name === '#global' ? "package.__global__" : undefined);
+        return packages[name];
     }
 
     function trueName(name) {
@@ -465,6 +466,7 @@ var packagefn = (function (out) {
                 }
             } else {
                 console.error("Failed to load package [" + name + "] from [" + where + "]");
+                console.error(e);
                 console.error("Current configuration = ");
                 console.error(config);
             }
@@ -547,6 +549,53 @@ var packagefn = (function (out) {
         }
     }
 
+    function loadDependency(pname, pnamecfg, dep, onload) {
+        var tname = trueName(dep);
+        var tnamecfg;
+
+        if (/^\./.test(dep)) {
+            // Relative package name starting with a period.
+            // Auto expand it.
+            dep = pname.replace(/\.[^\.]+$/, dep);
+            tname = trueName(dep);
+            tnamecfg = findConfig(tname);
+
+            // IMPORTANT:
+            // If pname has a config and this one doesn't, then
+            // assume it is going to be served up from the same location.
+            // This is an important simplification that lets you omit
+            // parent package prefixes of dependencies.
+            if (pnamecfg && !tnamecfg) {
+                config[tname] = {};
+                if (pnamecfg.path) {
+                    config[tname].path = relativePackagePath(pnamecfg.path, dep);
+                }
+                if (pnamecfg.url) {
+                    config[tname].url = relativePackagePath(pnamecfg.url, dep);
+                }
+            }
+        }
+
+        if (/\.\*$/.test(tname)) {
+            var listing =  tname.replace(/\*$/, '__listing__');
+            with_package(listing, function (p) {
+                var subPkgs = {};
+                var subPkgCount = 0;
+                p.forEach(function (subPkgName) {
+                    with_package(tname.replace(/\*$/, subPkgName), function (sp) {
+                        subPkgs[subPkgName] = sp;
+                        ++subPkgCount;
+                        if (subPkgCount === p.length) {
+                            onload(subPkgs);
+                        }
+                    });
+                });
+            });
+        } else {
+            with_package(tname, onload);
+        }
+    }
+
     function package3(name, dependencies, definition) {
         var depPackages = [];
         var count = 0;
@@ -558,10 +607,7 @@ var packagefn = (function (out) {
 
         if (dependencies.length > 0) {
             dependencies.forEach(function (dep, i) {
-                var tname = trueName(dep);
-                var tnamecfg;
-
-                function onePkgLoaded(p) {
+                function onload(p) {
                     depPackages[i] = p;
                     ++count;
                     if (count === dependencies.length) {
@@ -569,47 +615,7 @@ var packagefn = (function (out) {
                     }
                 }
 
-                if (/^\./.test(dep)) {
-                    // Relative package name starting with a period.
-                    // Auto expand it.
-                    dep = pname.replace(/\.[^\.]+$/, dep);
-                    tname = trueName(dep);
-                    tnamecfg = findConfig(tname);
-
-                    // IMPORTANT:
-                    // If pname has a config and this one doesn't, then
-                    // assume it is going to be served up from the same location.
-                    // This is an important simplification that lets you omit
-                    // parent package prefixes of dependencies.
-                    if (pnamecfg && !tnamecfg) {
-                        config[tname] = {};
-                        if (pnamecfg.path) {
-                            config[tname].path = relativePackagePath(pnamecfg.path, dep);
-                        }
-                        if (pnamecfg.url) {
-                            config[tname].url = relativePackagePath(pnamecfg.url, dep);
-                        }
-                    }
-                }
-                
-                if (/\.\*$/.test(tname)) {
-                    var listing =  tname.replace(/\*$/, '__listing__');
-                    with_package(listing, function (p) {
-                        var subPkgs = {};
-                        var subPkgCount = 0;
-                        p.forEach(function (subPkgName) {
-                            with_package(tname.replace(/\*$/, subPkgName), function (sp) {
-                                subPkgs[subPkgName] = sp;
-                                ++subPkgCount;
-                                if (subPkgCount === p.length) {
-                                    onePkgLoaded(subPkgs);
-                                }
-                            });
-                        });
-                    });
-                } else {
-                    with_package(tname, onePkgLoaded);
-                }
+                loadDependency(pname, pnamecfg, dep, onload);
             });
             return undefined;
         } else {
@@ -696,27 +702,16 @@ var packagefn = (function (out) {
 var fs = require('fs');
 
 function package(name) {
-    var hyphen = /\-/g;
-    while (hyphen.test(name)) {
-        name = name.replace(hyphen, '_');
-    }
+    name = name.split('-').join('_');
     name = name.replace(/\.?\*$/, '');
-    var root = package._;
-    name.split('.').forEach(function (part) {
-        root = root[part];
-    });
-    return root;
+    return name.split('.').reduce(function (root, part) { return root[part]; }, package._);
 }
 
 function main() {
     process.stdout.write(package.toString() + '\n');
-    process.stdout.write('package.__global__ = (function () {\n'
-        + 'try { window.document; return window; } catch (e) {}\n'
-        + 'try { global.require; return global; } catch (e) {}\n'
-        + '}());\n');
+    process.stdout.write('package.__global__ = (function () { return this; }());\n');
+    process.stdout.write('package.__global__["package"] = package;\n');
     process.stdout.write('package._ = {};\n'); // package._ contains all packages.
-    process.stdout.write('try { window["package"] = package; } catch (e) {}\n');
-    process.stdout.write('try { module.exports = package; } catch (e) {}\n');
     process.argv.forEach(function (arg, i) {
         if (i >= 2) {
             var source = fs.readFileSync(process.argv[i], 'utf8');
@@ -726,8 +721,6 @@ function main() {
     });
 }
 
-// Call without arguments to fetch ".package.js" file containing configuration 
-// about known packages.
 if (process.argv.length <= 2) {
     console.error('Usage: build [build-config.js] file1.js file2.js ... > concatenated.js');
 } else {
