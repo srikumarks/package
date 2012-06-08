@@ -488,6 +488,8 @@
 
         var pnamecfg = findConfig(pname);
 
+        loading[pname] = true;
+
         if (dependencies.length > 0) {
             dependencies.forEach(function (dep, i) {
                 var tname = trueName(dep);
