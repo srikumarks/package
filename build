@@ -267,10 +267,14 @@ var packagefn = (function (out) {
     }
 
     function definePackage(name, definition, dependencies) {
-        packagefn.__parent = name.replace(/\.[^\.]+$/, '');
-        var p = declPkg(name);
-        packages[name] = defWithFallback(name, p, definition, dependencies);
-        return onPackageLoaded(name);
+        if (!packagefn.__defined[name]) {
+            packagefn.__parent = name.replace(/\.[^\.]+$/, '');
+            var p = declPkg(name);
+            packages[name] = defWithFallback(name, p, definition, dependencies);
+            return packagefn.__defined[name] = onPackageLoaded(name);
+        } else {
+            packagefn.__defined[name];
+        }
     }
 
     function addOnLoad(name, callback) {
@@ -696,6 +700,7 @@ var packagefn = (function (out) {
     };
 
     packagefn.loadOrder = 1;
+    packagefn.__defined = {};
 
     return packagefn;
 }(process.stdout));
