@@ -397,6 +397,7 @@
                     + depVarNames.map(function (n) { return 'window.' + n + ' = ' + n + ';\n'; }).join('')
                     + 'return (function () {\n'
                         + source
+                        + '\nthis.' + exportedName + ' = ' + exportedName + ';'
                         + '\nreturn this.' + exportedName + ' || module.exports;\n'
                         + '}).call(window);\n'
                     + '})'));
