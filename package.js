@@ -404,8 +404,19 @@
         });
     }
 
-    function loadExternalModuleFromURL_browser(pkgname, url, depPkgNames, depVarNames, exportedName) {
-        document.write('<script src="' + url + '"></script>');
+    function loadExternalModuleFromURL_browser(pkgname, urls, depPkgNames, depVarNames, exportedName) {
+        if (typeof(urls) === 'string') {
+            urls = [urls];
+        }
+        
+        if (!(typeof(urls) === 'object' && urls instanceof Array)) {
+            console.error('Invalid urls list - ' + urls);
+            throw new Error('Invalid urls list', urls);
+        }
+
+        urls.forEach(function (url) {
+            document.write('<script src="' + url + '"></script>');
+        });
         document.write('<script>package(' + JSON.stringify(pkgname) 
                     + ', function () { return ' + exportedName + '; });</script>');
     }
