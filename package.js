@@ -658,7 +658,7 @@
     if (the_global_object.navigator && the_global_object.document && the_global_object.document.write) {
         // TODO: Figure out a way to auto-add the package registry before
         // the other code loads.
-        the_global_object.document.write('<script src="https://raw.github.com/srikumarks/package_registry/master/packages.js"></script>');
+        the_global_object.document.write('<script src="http://sriku.org/lib/package_registry/packages.js"></script>');
     } else {
         // In node.js
         loadKnownPackageConfig();    
