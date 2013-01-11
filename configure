@@ -58,7 +58,7 @@ package.external = function (pkgname, exportedName, url, dependsOn, depNames) {
 
 
 function fetchKnownPackageConfigs(next) {
-    var urlp = require('url').parse('https://raw.github.com/srikumarks/package_registry/master/packages.js');
+    var urlp = require('url').parse('http://sriku.org/lib/package_registry/packages.js');
     urlp.headers = {'Accept-Encoding': 'identity'};
     require(urlp.protocol.split(':')[0]).get(urlp, function (res) {
         var source = "";
