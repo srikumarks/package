@@ -480,20 +480,36 @@ var packagefn = (function (out) {
     // An external module is something that doesn't use package to wrap it.
     // This includes libraries such as jquery, backbone, underscore and any
     // other that wishes to be directly used in an app using a <script> url.
-    function loadExternalModuleFromURL(pkgname, url, depPkgNames, depVarNames, exportedName) {
-        packagefn.fetch(url, function (package, url, source) {
-            package(pkgname, ['#global'].concat(depPkgNames), 
-                eval('(function (' + ['__window__'].concat(depVarNames).join(',') + ') {\n'
-                    + 'var module = {exports: {}}, exports = module.exports;\n'
-                    + 'var window = Object.create(__window__);\n'
-                    + depVarNames.map(function (n) { return 'window.' + n + ' = ' + n + ';\n'; }).join('')
-                    + 'return (function () {\n'
-                        + source
-                        + '\nthis.' + exportedName + ' = ' + exportedName + ';'
-                        + '\nreturn this.' + exportedName + ' || module.exports;\n'
-                        + '}).call(window);\n'
-                    + '})'));
-        });
+    function loadExternalModuleFromURL(pkgname, urls, depPkgNames, depVarNames, exportedName) {
+        if (typeof(urls) === 'string') {
+            urls = [urls];
+        }
+
+        if (typeof(urls) === 'object' && urls instanceof Array) {
+            var i = 0;
+            packagefn.fetch(urls[i++], function (package, url, source) {
+                if (i < urls.length) {
+                    out.write('\n;(function () {\n' + source + '\n}());\n');
+                    packagefn.fetch(urls[i++], arguments.callee);
+                } else {
+                    package(pkgname, ['#global'].concat(depPkgNames), 
+                        eval('(function (' + ['__window__'].concat(depVarNames).join(',') + ') {\n'
+                            + 'var module = {exports: {}}, exports = module.exports;\n'
+                            + 'var window = Object.create(__window__);\n'
+                            + depVarNames.map(function (n) { return 'window.' + n + ' = ' + n + ';\n'; }).join('')
+                            + 'return (function () {\n'
+                                + source
+                                + '\nthis.' + exportedName + ' = ' + exportedName + ';'
+                                + '\nreturn this.' + exportedName + ' || module.exports;\n'
+                                + '}).call(window);\n'
+                            + '})'));
+                }
+
+            });
+        } else {
+            console.error('Invalid urls specification');
+            throw new Error('Invalid urls specification');
+        }
     }
     
     // If you load a package named 'blah.bling.meow',
